@@ -1,0 +1,30 @@
+{
+  "name": "@battleship/api",
+  "version": "1.0.0",
+  "description": "node api for classic battleship game",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "build": "pnpm exec tsc",
+        "dev": "NODE_ENV=local concurrently \"tsc --noEmit --watch\" \"ts-node-dev --respawn --transpile-only src/index.ts\""
+
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "@battleship/util": "workspace:*"
+  },
+  "devDependencies": {
+    "@battleship/tsconfig": "workspace:*",
+    "@types/express": "^5.0.2",
+    "@types/jest": "^29.5.14",
+    "concurrently": "^9.1.2",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.4",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.8.3"
+  }
+}
