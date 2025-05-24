@@ -1,0 +1,143 @@
+{
+    "gameState": {
+        "gameID": "1234",
+        "players": [
+            {
+                "name": "Player 1",
+                "id": 0,
+                "ships": [{
+                    "name": "Aircraft Carrier",
+                    "key": "A",
+                    "length": 5,
+                    "hits": 0,
+                    "sunk": false
+                },
+                {
+                    "name": "Battleship",
+                    "key": "B",
+                    "length": 4,
+                    "hits": 0,
+                    "sunk": false
+                },
+                {
+                    "name": "Cruiser",
+                    "key": "C",
+                    "length": 3,
+                    "hits": 0,
+                    "sunk": false
+                },
+                {
+                    "name": "Submarine",
+                    "key": "S",
+                    "length": 3,
+                    "hits": 0,
+                    "sunk": false
+                },
+                {
+                    "name": "Destroyer",
+                    "key": "D",
+                    "length": 2,
+                    "hits": 2,
+                    "sunk": true
+                }],
+                "board": [
+                    ["O", "O", "O", "O", "O", "O", "O", "D", "D", "O"],
+                    ["O", "O", "O", "O", "O", "A", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "A", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "A", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "A", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "A", "O", "O", "C", "O"],
+                    ["O", "O", "O", "B", "B", "B", "B", "O", "C", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "C", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "S", "S", "S", "O", "O"]
+                ],
+                "attacks": [
+                    ["O", "O", "O", "H", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "M", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "M", "O", "M", "M", "M", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"]
+                ],
+                "lastAttack": {
+                    "position": "B4",
+                    "result": "miss"
+                }
+            },
+            {
+                "name": "Player 2",
+                "id": 1,
+                "ships": [{
+                    "name": "Aircraft Carrier",
+                    "key": "A",
+                    "length": 5,
+                    "hits": 1,
+                    "sunk": false
+                },
+                {
+                    "name": "Battleship",
+                    "key": "B",
+                    "length": 4,
+                    "hits": 0,
+                    "sunk": false
+                },
+                {
+                    "name": "Cruiser",
+                    "key": "C",
+                    "length": 3,
+                    "hits": 0,
+                    "sunk": false
+                },
+                {
+                    "name": "Submarine",
+                    "key": "S",
+                    "length": 3,
+                    "hits": 0,
+                    "sunk": false
+                },
+                {
+                    "name": "Destroyer",
+                    "key": "D",
+                    "length": 2,
+                    "hits": 0,
+                    "sunk": true
+                }],
+                "board": [
+                    ["A", "A", "A", "A", "A", "O", "O", "D", "D", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "B", "O", "O", "O", "O", "O", "C", "O"],
+                    ["O", "O", "B", "O", "O", "O", "O", "O", "C", "O"],
+                    ["O", "O", "B", "O", "O", "O", "O", "O", "C", "O"],
+                    ["O", "O", "B", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "S", "S", "S", "O", "O"]
+                ],
+                "attacks": [
+                    ["O", "O", "O", "M", "O", "O", "O", "H", "H", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "M", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "M", "O", "M", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"],
+                    ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"]
+                ],
+                "lastAttack": {
+                    "position": "A9",
+                    "result": "hit"
+                }
+            }
+        ],
+        "turn": 7,
+        "activePlayerIndex": 0
+    }
+}

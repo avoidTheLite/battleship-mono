@@ -4,6 +4,7 @@
     "compilerOptions": {
         "jsx": "react-jsx",
         "target":"ES2022",
+        "moduleDetection": "force",
         "moduleResolution": "nodenext",
         "module": "NodeNext"
     }

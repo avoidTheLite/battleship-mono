@@ -8,19 +8,23 @@
     "exports": {
         "./appConfig": {
             "types": "./src/appConfig.ts",
-            "import": "./dist/appConfig.js"
+            "import": "./dist/appConfig.js",
+            "require": "./dist/appConfig.js"
         },
         "./Logger": {
             "types": "./src/Logger.ts",
-            "import": "./dist/Logger.js"
+            "import": "./dist/Logger.js",
+            "require": "./dist/Logger.js"
         },
         "./logMiddleware": {
             "types": "./src/middleware/logMiddleware.ts",
-            "import": "./dist/middleware/logMiddleware.js"
+            "import": "./dist/middleware/logMiddleware.js",
+            "require": "./dist/middleware/logMiddleware.js"
         },
         "./logError": {
             "types": "./src/middleware/logError.ts",
-            "import": "./dist/middleware/logError.js"
+            "import": "./dist/middleware/logError.js",
+            "require": "./dist/middleware/logError.js"
         }
     },
     "devDependencies": {
