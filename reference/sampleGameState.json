@@ -1,6 +1,8 @@
 {
     "gameState": {
         "gameID": "1234",
+        "turn": 7,
+        "activePlayerIndex": 0,
         "players": [
             {
                 "name": "Player 1",
@@ -65,7 +67,7 @@
                     ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"]
                 ],
                 "lastAttack": {
-                    "position": "B4",
+                    "position": [ 1, 3 ],
                     "result": "miss"
                 }
             },
@@ -132,12 +134,10 @@
                     ["O", "O", "O", "O", "O", "O", "O", "O", "O", "O"]
                 ],
                 "lastAttack": {
-                    "position": "A9",
+                    "position": [ 0, 8 ],
                     "result": "hit"
                 }
             }
-        ],
-        "turn": 7,
-        "activePlayerIndex": 0
+        ]
     }
 }
