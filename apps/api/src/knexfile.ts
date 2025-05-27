@@ -1,6 +1,6 @@
 import type { Knex } from 'knex';
 
-import config from './config';
+import config from './config.ts';
 
 const connectionDetails: Knex.StaticConnectionConfig = {
     database: config.get('dbName') as string,

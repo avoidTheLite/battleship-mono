@@ -1,8 +1,8 @@
 import { Router } from "express";
-import gameController from "./gameController";
+import gameController from "./gameController.ts";
 import bodyParser from "body-parser";
 
-const gameRouter = Router();
+const gameRouter: Router = Router();
 const gameControllerInstance = gameController();
 
 gameRouter.use(bodyParser.json());

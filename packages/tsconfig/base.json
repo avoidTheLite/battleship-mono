@@ -6,6 +6,11 @@
         "target":"ES2022",
         "moduleDetection": "force",
         "moduleResolution": "nodenext",
-        "module": "NodeNext"
+        "module": "NodeNext",
+        "skipLibCheck": true,
+        "declaration": true,
+        "composite": true,
+        "sourceMap": true,
+        "declarationMap": true,
     }
 }

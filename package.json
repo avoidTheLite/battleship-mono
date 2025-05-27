@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Classic Battleship game using Node and react in a mono-repo",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "test"
   },

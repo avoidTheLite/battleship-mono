@@ -10,35 +10,35 @@
                 "ships": [{
                     "name": "Aircraft Carrier",
                     "key": "A",
-                    "length": 5,
+                    "size": 5,
                     "hits": 0,
                     "sunk": false
                 },
                 {
                     "name": "Battleship",
                     "key": "B",
-                    "length": 4,
+                    "size": 4,
                     "hits": 0,
                     "sunk": false
                 },
                 {
                     "name": "Cruiser",
                     "key": "C",
-                    "length": 3,
+                    "size": 3,
                     "hits": 0,
                     "sunk": false
                 },
                 {
                     "name": "Submarine",
                     "key": "S",
-                    "length": 3,
+                    "size": 3,
                     "hits": 0,
                     "sunk": false
                 },
                 {
                     "name": "Destroyer",
                     "key": "D",
-                    "length": 2,
+                    "size": 2,
                     "hits": 2,
                     "sunk": true
                 }],
@@ -77,35 +77,35 @@
                 "ships": [{
                     "name": "Aircraft Carrier",
                     "key": "A",
-                    "length": 5,
+                    "size": 5,
                     "hits": 1,
                     "sunk": false
                 },
                 {
                     "name": "Battleship",
                     "key": "B",
-                    "length": 4,
+                    "size": 4,
                     "hits": 0,
                     "sunk": false
                 },
                 {
                     "name": "Cruiser",
                     "key": "C",
-                    "length": 3,
+                    "size": 3,
                     "hits": 0,
                     "sunk": false
                 },
                 {
                     "name": "Submarine",
                     "key": "S",
-                    "length": 3,
+                    "size": 3,
                     "hits": 0,
                     "sunk": false
                 },
                 {
                     "name": "Destroyer",
                     "key": "D",
-                    "length": 2,
+                    "size": 2,
                     "hits": 0,
                     "sunk": true
                 }],

@@ -1,46 +1,13 @@
-import { Knex } from 'knex';
+import type { Knex } from 'knex';
+import type { PlayerRecord, ShipData, Board, Player } from '../../common/types/types.ts';
+import createShips from '../../common/util/createShips.ts';
+import createBoard from '../../common/util/createBoard.ts';
 
-const blankBoard = Array(10).fill(Array(10).fill("0"));
 
-const shipData = [
-    {
-        "name": "Aircraft Carrier",
-        "key": "A",
-        "length": 5,
-        "hits": 0,
-        "sunk": false
-    },
-    {
-        "name": "Battleship",
-        "key": "B",
-        "length": 4,
-        "hits": 0,
-        "sunk": false
-    },
-    {
-        "name": "Cruiser",
-        "key": "C",
-        "length": 3,
-        "hits": 0,
-        "sunk": false
-    },
-    {
-        "name": "Submarine",
-        "key": "S",
-        "length": 3,
-        "hits": 0,
-        "sunk": false
-    },
-    {
-        "name": "Destroyer",
-        "key": "D",
-        "length": 2,
-        "hits": 0,
-        "sunk": false
-    }
-]
+const blankBoard: Board = createBoard();
+const shipData: ShipData = createShips();
 
-const game1Players = [
+const game1Players: PlayerRecord[] = [
     {
         id: 'seed-game-1-player-1',
         username: 'Player 1',
@@ -63,7 +30,7 @@ const game1Players = [
     },
 ]
 
-const game2Players = [
+const game2Players: PlayerRecord[] = [
     {
         id: 'seed-game-2-player-1',
         username: 'Player 1',

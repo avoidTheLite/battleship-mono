@@ -16,7 +16,14 @@ export function logError() {
         next: NextFunction
     ): void => {
         if (err) {
-            req.log.error(`Error received: ${err.message}`, { error: err });
+            // if (req.log) {
+            //     req.log.error(`Error received: ${err.message}`, { error: err });
+            //     next(err);
+            // } else {
+                const logger = Logger.configure()
+                logger.error(`Error received: ${err.message}`, { error: err });
+                next(err);
+            // }
         }
         next();
     }

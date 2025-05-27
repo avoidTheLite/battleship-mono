@@ -1,5 +1,5 @@
 import Knex from 'knex';
-import knexConfig from '../knexfile';
+import knexConfig from '../knexfile.ts';
 
 const environment = process.env.NODE_ENV || 'local';
 if (!knexConfig[environment]) {

@@ -1,9 +1,9 @@
-import express, { Express, Request, Response, NextFunction } from 'express';
+import express, { type Express, type Request, type Response, type NextFunction } from 'express';
 import cors from 'cors';
-import config from './config';
+import config from './config.ts';
 import { logMiddleware, logError } from '@battleship/util/logMiddleware';
-import Logger, { LogLevel } from '@battleship/util/Logger';
-import gameRouter from './game/gameRouter';
+import Logger, { type LogLevel } from '@battleship/util/Logger';
+import gameRouter from './game/gameRouter.ts';
 
 const logger = Logger.configure({
     logLevel: config.get('logLevel') as LogLevel,
