@@ -1,0 +1,38 @@
+{
+    "name": "@battleship/util",
+    "type": "module",
+    "scripts": {
+        "dev": "pnpm exec tsc --watch",
+        "build": "pnpm exec tsc"
+    },
+    "exports": {
+        "./appConfig": {
+            "types": "./src/appConfig.ts",
+            "import": "./dist/appConfig.js",
+            "require": "./dist/appConfig.js"
+        },
+        "./Logger": {
+            "types": "./src/Logger.ts",
+            "import": "./dist/Logger.js",
+            "require": "./dist/Logger.js"
+        },
+        "./logMiddleware": {
+            "types": "./src/middleware/logMiddleware.ts",
+            "import": "./dist/middleware/logMiddleware.js",
+            "require": "./dist/middleware/logMiddleware.js"
+        },
+        "./logError": {
+            "types": "./src/middleware/logError.ts",
+            "import": "./dist/middleware/logError.js",
+            "require": "./dist/middleware/logError.js"
+        }
+    },
+    "devDependencies": {
+        "@battleship/tsconfig": "workspace:*",
+        "@types/node": "^22.15.21",
+        "typescript": "^5.8.3"
+    },
+    "dependencies": {
+        "express": "^5.1.0"
+    }
+}

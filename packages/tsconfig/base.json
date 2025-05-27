@@ -1,0 +1,16 @@
+{
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "display": "Default",
+    "compilerOptions": {
+        "jsx": "react-jsx",
+        "target":"ES2022",
+        "moduleDetection": "force",
+        "moduleResolution": "nodenext",
+        "module": "NodeNext",
+        "skipLibCheck": true,
+        "declaration": true,
+        "composite": true,
+        "sourceMap": true,
+        "declarationMap": true,
+    }
+}

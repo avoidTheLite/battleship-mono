@@ -1,0 +1,23 @@
+{
+  "name": "battleship",
+  "version": "1.0.0",
+  "description": "Classic Battleship game using Node and react in a mono-repo",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avoidTheLite/battleship-mono.git"
+  },
+  "author": "Justin Flanders",
+  "bugs": {
+    "url": "https://github.com/avoidTheLite/battleship-mono/issues"
+  },
+  "packageManager": "pnpm@10.11.0",
+  "homepage": "https://github.com/avoidTheLite/battleship-mono#readme",
+  "devDependencies": {
+    "turbo": "^2.5.3"
+  }
+}
