@@ -3,11 +3,11 @@ import type { ShipData } from '../types/types.ts';
 export default function createShips(): ShipData {
     return [
         {
-        "name": "Aircraft Carrier",
-        "key": "A",
-        "size": 5,
-        "hits": 0,
-        "sunk": false
+            "name": "Aircraft Carrier",
+            "key": "A",
+            "size": 5,
+            "hits": 0,
+            "sunk": false
         },
         {
             "name": "Battleship",

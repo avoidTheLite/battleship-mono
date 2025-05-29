@@ -2,13 +2,15 @@
 export interface Game {
     id: string;
     name: string;
-    phase: string;
+    phase: Phase;
     turn: number;
     active_player_index: number;
 }
 export interface GameState extends Game {
     players: Player[];
 }
+
+export type Phase = 'deploy' | 'play';
 
 export interface PlayerBase {
     username: string;
@@ -46,7 +48,17 @@ export type Board = [
     [string, string, string, string, string, string, string, string, string, string]
 ]
 
-type Ship = {
+export type TargetKey = "A" | "B" | "C" | "S" | "D" | "O"
+
+export type TargetMapping = {
+    "A": "Aircraft Carrier",
+    "B": "Battleship",
+    "C": "Cruiser",
+    "S": "Submarine",
+    "D": "Destroyer",
+    "O": "Ocean"
+}
+export type Ship = {
     name: string,
     key: string,
     size: number,
@@ -66,6 +78,9 @@ export type Attack = {
     position: [ number, number ]
 }
 
+export type  ResultOptions = "hit" | "miss" | "sunk"
+
 export interface AttackResult extends Attack {
-    result: string
+    result: ResultOptions;
+    target: TargetKey;
 }

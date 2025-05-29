@@ -12,6 +12,15 @@ export class GameNotFoundError extends Error {
     }
 }
 
+export class SaveGameError extends Error {
+    name: string
+    constructor(args: StandardErrorArgs) {
+        super(args.message);
+        Object.setPrototypeOf(this, new.target.prototype);
+        this.name = args.name || 'SaveGameError';
+    }
+}
+
 export class PlayerNotFoundError extends Error {
     name: string
     constructor(args: StandardErrorArgs) {
@@ -36,5 +45,23 @@ export class DeployError extends Error {
         super(args.message);
         Object.setPrototypeOf(this, new.target.prototype);
         this.name = args.name || 'DeployError';
+    }
+}
+
+export class EndTurnError extends Error {
+    name: string
+    constructor(args: StandardErrorArgs) {
+        super(args.message);
+        Object.setPrototypeOf(this, new.target.prototype);
+        this.name = args.name || 'EndTurnError';
+    }
+}
+
+export class AttackError extends Error {
+    name: string
+    constructor(args: StandardErrorArgs) {
+        super(args.message);
+        Object.setPrototypeOf(this, new.target.prototype);
+        this.name = args.name || 'AttackError';
     }
 }
