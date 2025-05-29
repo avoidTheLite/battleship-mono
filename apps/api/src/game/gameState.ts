@@ -1,13 +1,14 @@
 import type { PlayerBase, Player, PlayerRecord, GameState, Game, Board, ShipData, Attack } from '../common/types/types.ts';
-import { DeployError, NewGameError, PlayerNotFoundError } from '../common/types/errors.ts';
+import { DeployError, NewGameError, PlayerNotFoundError, EndTurnError, AttackError, SaveGameError } from '../common/types/errors.ts';
 import { GAMESTATE_TABLE, PLAYER_TABLE } from '../db/tables.ts';
 import ShortUniqueId from 'short-unique-id';
 import createBoard from '../common/util/createBoard.ts';
 import createShips from '../common/util/createShips.ts';
 import db from '../db/db.ts';
-import Logger from '@battleship/util/Logger';
+import TurnManager from './services/TurnManager.ts';
 
 let uid: ShortUniqueId = new ShortUniqueId({ length: 10 });
+const turnManager: TurnManager = new TurnManager();
 
 function convertPlayersToPlayerRecords(players: Player[]): PlayerRecord[] {
     let playerRecords: PlayerRecord[] = [];
@@ -27,8 +28,13 @@ function convertPlayersToPlayerRecords(players: Player[]): PlayerRecord[] {
     return playerRecords;
 }
 
-function GameStateController() {
-    async function createGame(players: PlayerBase[], gameName: string): Promise<GameState> {
+class GameStateController {
+
+    constructor() {
+
+    }
+    
+    public async createGame(players: PlayerBase[], gameName: string): Promise<GameState> {
         if (players.length !== 2) {
             throw new NewGameError({
                 message: `Invalid number of players. Number of players was set to ${players.length}`
@@ -49,7 +55,11 @@ function GameStateController() {
             board_data: JSON.stringify(createBoard()),
             attack_data: JSON.stringify(createBoard()),
             ship_data: JSON.stringify(createShips()),
-            last_attack: null
+            last_attack: JSON.stringify({
+                position: null,
+                result: null,
+                target: null
+            })
         }
         const player2: PlayerRecord = {
             id: uid.rnd(),
@@ -59,15 +69,19 @@ function GameStateController() {
             board_data: JSON.stringify(createBoard()),
             attack_data: JSON.stringify(createBoard()),
             ship_data: JSON.stringify(createShips()),
-            last_attack: null
+            last_attack: JSON.stringify({
+                position: null,
+                result: null,
+                target: null
+            })
         }
         await db('games').insert(game);
         await db('players').insert([player1, player2]);
-        const gameState = await getGame(game.id);
+        const gameState = await this.getGame(game.id);
         return gameState;
 
     }
-    async function getGame(gameID: string): Promise<GameState> {
+    public async getGame(gameID: string): Promise<GameState> {
         const game = await db('games').select(
             "game.id",
             "game.name",
@@ -136,27 +150,34 @@ function GameStateController() {
         }
         return gameState;
     }
-    async function deploy(gameID: string, deployBoard: Board): Promise<GameState> {
-        let gameState = await getGame(gameID);
-        gameState.players[gameState.active_player_index].board_data = deployBoard;
-        console.log(JSON.stringify(gameState));
+
+    public async saveGame(gameID: string, gameState: GameState): Promise<GameState> {
         const playerRecords: PlayerRecord[] = convertPlayersToPlayerRecords(gameState.players);
+        for (let i = 0; i < playerRecords.length; i++) {
+            try{
+                await db('players').where('id', playerRecords[i].id).update(playerRecords[i]);
+            } catch (error) {
+                throw new SaveGameError({
+                    message: `Error saving game ${error}`
+                });
+            }
+        }
+        const gameRecord: Game={
+            id: gameState.id,
+            name: gameState.name,
+            phase: gameState.phase,
+            turn: gameState.turn,
+            active_player_index: gameState.active_player_index
+        };
         try{
-            await db('players').where('id', playerRecords[gameState.active_player_index].id).update(playerRecords[gameState.active_player_index]);
+            await db('games').where('id', gameID).update(gameRecord);
         } catch (error) {
-            throw new DeployError({
-                message: `Error deploying board ${error}`
+            throw new SaveGameError({
+                message: `Error saving game ${error}`
             });
         }
-        const retrievedGameState = await getGame(gameID);
-
-        return retrievedGameState;
-    }
-    return {
-        createGame,
-        getGame,
-        deploy
+        return gameState;
     }
 }
 
-export default GameStateController;
+export { turnManager, GameStateController };

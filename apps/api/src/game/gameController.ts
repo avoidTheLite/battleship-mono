@@ -1,16 +1,20 @@
 import type { Request, Response } from 'express';
 import type { GameState } from '../common/types/types.ts';
-import { NewGameError } from '../common/types/errors.ts';
-import db from '../db/db.ts';
-import GameStateController from './gameState.ts';
+import { GameStateController } from './gameState.ts';
+import AttackService from './services/AttackService.ts';
+import DeployService from './services/DeployService.ts';
 
+
+const gameStateController: GameStateController = new GameStateController();
+const attackService: AttackService = new AttackService(gameStateController);
+const deployService: DeployService = new DeployService(gameStateController);
 function gameController() {
     async function newGame(
         req: Request,
         res: Response
     ) {
         console.log('New game - initializing');
-        const gameState: GameState = await GameStateController().createGame(req.body.players,req.body.gameName);
+        const gameState: GameState = await gameStateController.createGame(req.body.players,req.body.gameName);
         res.send(gameState);
     }
     async function getGame(
@@ -18,7 +22,7 @@ function gameController() {
         res: Response
     ) {
         const gameID = req.params.id;
-        const gameState: GameState = await GameStateController().getGame(gameID);
+        const gameState: GameState = await gameStateController.getGame(gameID);
         console.log('Loading game: ' + gameID);
         res.send(gameState);
     }
@@ -28,9 +32,9 @@ function gameController() {
     ) {
         const gameID = req.params.id;
         const deployBoard = req.body.deployBoard;
-        const gameState: GameState = await GameStateController().deploy(gameID, deployBoard);
+        const gameState: GameState = await deployService.deployCommand(gameID, deployBoard);
         console.log('Deployment initiated: ' + gameID + ' - ' + JSON.stringify(deployBoard));
-        res.send('DEPLOY GAME - ' + gameID + ' - ' + JSON.stringify(deployBoard));
+        res.send(gameState);
     }
     async function attack(
         req: Request,
@@ -43,7 +47,8 @@ function gameController() {
             result: 'miss'
         }
         console.log('Attack initiated: ' + gameID + ' - ' + JSON.stringify(attack));
-        res.send('ATTACK GAME - ' + gameID + ' - ' + JSON.stringify(result));
+        const gameState: GameState = await attackService.attackCommand(gameID, attack);
+        res.send(gameState);
     }
     return {
         newGame,
