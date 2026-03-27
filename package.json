@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "test"
+    "test": "turbo run test"
   },
   "repository": {
     "type": "git",
@@ -19,5 +19,8 @@
   "homepage": "https://github.com/avoidTheLite/battleship-mono#readme",
   "devDependencies": {
     "turbo": "^2.5.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sqlite3"]
   }
 }

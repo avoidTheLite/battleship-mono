@@ -1,6 +1,10 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { Knex } from 'knex';
 
 import config from './config.ts';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const connectionDetails: Knex.StaticConnectionConfig = {
     database: config.get('dbName') as string,
@@ -21,10 +25,10 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: path.resolve(__dirname, './db/migrations'),
         },
         seeds: {
-            directory: './db/seeds',
+            directory: path.resolve(__dirname, './db/seeds'),
         },
     },
     development: {
@@ -37,26 +41,23 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: path.resolve(__dirname, './db/migrations'),
         },
         seeds: {
-            directory: './db/seeds',
+            directory: path.resolve(__dirname, './db/seeds'),
         },
     },
     test: {
         debug: false,
         client: 'sqlite3',
-        connection: connectionDetails,
-        pool: {
-            min: 2,
-            max: 10,
-        },
+        connection: { filename: ':memory:' },
+        useNullAsDefault: true,
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: path.resolve(__dirname, './db/migrations'),
         },
         seeds: {
-            directory: './db/seeds',
+            directory: path.resolve(__dirname, './db/seeds'),
         },
     },
     production: {
@@ -69,10 +70,10 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: path.resolve(__dirname, './db/migrations'),
         },
         seeds: {
-            directory: './db/seeds',
+            directory: path.resolve(__dirname, './db/seeds'),
         },
     },
 };
