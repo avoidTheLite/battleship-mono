@@ -1,5 +1,5 @@
 import { GameStateController } from "../gameState.ts";
-import type { Attack, Board, GameState, Game, TargetKey, Ship } from "../../common/types/types.ts";
+import type { Attack, Board, GameState, Game, TargetKey, Ship, AttackResult } from "../../common/types/types.ts";
 import { AttackError } from "../../common/types/errors.ts";
 import { turnManager } from "../gameState.ts";
 
@@ -30,7 +30,7 @@ class AttackService {
         }
         
         const targetPlayerIndex: number = (gameState.active_player_index + 1) % 2;
-        gameState.players[gameState.active_player_index].last_attack.position = coordinates;
+        gameState.players[gameState.active_player_index].last_attack = this.createAttackResult(coordinates);
         if (this.isHit(gameState.players[targetPlayerIndex].board_data, coordinates)) {
             this.applyHit(gameState, targetPlayerIndex, coordinates);
         } else {
@@ -58,6 +58,14 @@ class AttackService {
             return false;
         }
         return true;
+    }
+
+    private createAttackResult(coordinates: [number, number]): AttackResult {
+        return {
+            position: coordinates,
+            result: null,
+            target: null
+        } as AttackResult;
     }
 
     private alreadyAttacked(attackData: Board, coordinates: [number, number]): boolean {
