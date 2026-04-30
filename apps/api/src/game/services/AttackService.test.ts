@@ -30,4 +30,20 @@ describe('Attack Service Test', () => {
         });
         await expect(attackService.attackCommand(gameID, attack)).rejects.toThrow(AttackError);
     });
+
+    it('should only mark the attacked square on a hit', async () => {
+        const gameID = 'test';
+        const gameState = createTestGame();
+        gameState.phase = 'play';
+        gameState.players[1].board_data[0][0] = 'A';
+
+        mockGameStateController.getGame.mockResolvedValue(gameState);
+        mockGameStateController.saveGame.mockImplementation(async (_gameID: string, savedGameState: GameState) => savedGameState);
+
+        await attackService.attackCommand(gameID, { position: [0, 0] });
+
+        expect(gameState.players[0].attack_data[0][0]).toBe('H');
+        expect(gameState.players[0].attack_data[1][0]).toBe('O');
+        expect(gameState.players[0].attack_data[9][0]).toBe('O');
+    });
 })
