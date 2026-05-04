@@ -30,4 +30,35 @@ describe('Attack Service Test', () => {
         });
         await expect(attackService.attackCommand(gameID, attack)).rejects.toThrow(AttackError);
     });
+
+    it('should record a missed attack before saving the game', async () => {
+        const gameID = 'test';
+        const gameState: GameState = createTestGame();
+        gameState.phase = 'play';
+        mockGameStateController.getGame
+            .mockResolvedValueOnce(gameState)
+            .mockResolvedValueOnce(gameState);
+        mockGameStateController.saveGame.mockImplementation(async (_gameID: string, savedGameState: GameState) => savedGameState);
+
+        await attackService.attackCommand(gameID, { position: [0, 0] });
+
+        expect(mockGameStateController.saveGame).toHaveBeenCalledWith(
+            gameID,
+            expect.objectContaining({
+                players: expect.arrayContaining([
+                    expect.objectContaining({
+                        player_index: 0,
+                        attack_data: expect.arrayContaining([
+                            ["M", "O", "O", "O", "O", "O", "O", "O", "O", "O"]
+                        ]),
+                        last_attack: {
+                            position: [0, 0],
+                            result: "miss",
+                            target: "O"
+                        }
+                    })
+                ])
+            })
+        );
+    });
 })
