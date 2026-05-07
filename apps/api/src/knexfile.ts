@@ -46,10 +46,13 @@ const knexConfig: { [key: string]: Knex.Config } = {
     test: {
         debug: false,
         client: 'sqlite3',
-        connection: connectionDetails,
+        connection: {
+            filename: ':memory:'
+        },
+        useNullAsDefault: true,
         pool: {
-            min: 2,
-            max: 10,
+            min: 1,
+            max: 1,
         },
         migrations: {
             tableName: 'knex_migrations',
