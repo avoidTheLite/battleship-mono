@@ -21,10 +21,10 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: './src/db/migrations',
         },
         seeds: {
-            directory: './db/seeds',
+            directory: './src/db/seeds',
         },
     },
     development: {
@@ -37,26 +37,29 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: './src/db/migrations',
         },
         seeds: {
-            directory: './db/seeds',
+            directory: './src/db/seeds',
         },
     },
     test: {
         debug: false,
         client: 'sqlite3',
-        connection: connectionDetails,
+        connection: {
+            filename: ':memory:'
+        },
+        useNullAsDefault: true,
         pool: {
-            min: 2,
-            max: 10,
+            min: 1,
+            max: 1,
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: './src/db/migrations',
         },
         seeds: {
-            directory: './db/seeds',
+            directory: './src/db/seeds',
         },
     },
     production: {
@@ -69,10 +72,10 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: './src/db/migrations',
         },
         seeds: {
-            directory: './db/seeds',
+            directory: './src/db/seeds',
         },
     },
 };
