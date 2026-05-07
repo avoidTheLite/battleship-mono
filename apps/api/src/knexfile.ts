@@ -21,10 +21,10 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: './src/db/migrations',
         },
         seeds: {
-            directory: './db/seeds',
+            directory: './src/db/seeds',
         },
     },
     development: {
@@ -37,10 +37,10 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: './src/db/migrations',
         },
         seeds: {
-            directory: './db/seeds',
+            directory: './src/db/seeds',
         },
     },
     test: {
@@ -56,10 +56,10 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: './src/db/migrations',
         },
         seeds: {
-            directory: './db/seeds',
+            directory: './src/db/seeds',
         },
     },
     production: {
@@ -72,10 +72,10 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: './src/db/migrations',
         },
         seeds: {
-            directory: './db/seeds',
+            directory: './src/db/seeds',
         },
     },
 };
