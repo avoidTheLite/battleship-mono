@@ -9,11 +9,21 @@ export default class DeployService {
         this.gameStateController = gameStateController;
     }
 
-    private isValidBoard(board: Board): boolean {
+    private isValidBoard(board: unknown): board is Board {
         let count: number = 0;
         const expectedCount: number = 17;
+        const validTargets = new Set(['O', 'A', 'B', 'C', 'S', 'D']);
+        if (!Array.isArray(board) || board.length !== 10) {
+            return false;
+        }
         for (let i = 0; i < 10; i++) {
+            if (!Array.isArray(board[i]) || board[i].length !== 10) {
+                return false;
+            }
             for (let j = 0; j < 10; j++) {
+                if (!validTargets.has(board[i][j])) {
+                    return false;
+                }
                 if (board[i][j] !== 'O') {
                     count += 1;
                 }
