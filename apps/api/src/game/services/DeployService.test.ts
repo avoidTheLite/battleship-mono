@@ -1,4 +1,4 @@
-import { describe, expect, beforeEach, it } from "@jest/globals";
+import { describe, expect, beforeEach, it, jest } from "@jest/globals";
 import DeployService from "./DeployService.ts";
 import { DeployError } from "../../common/types/errors.ts";
 import type { Board } from "../../common/types/types.ts";
