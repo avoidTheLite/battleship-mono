@@ -1,6 +1,12 @@
 import type { Knex } from 'knex';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import config from './config.ts';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const migrationsDirectory = join(__dirname, 'db/migrations');
+const seedsDirectory = join(__dirname, 'db/seeds');
 
 const connectionDetails: Knex.StaticConnectionConfig = {
     database: config.get('dbName') as string,
@@ -21,10 +27,10 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: migrationsDirectory,
         },
         seeds: {
-            directory: './db/seeds',
+            directory: seedsDirectory,
         },
     },
     development: {
@@ -37,26 +43,29 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: migrationsDirectory,
         },
         seeds: {
-            directory: './db/seeds',
+            directory: seedsDirectory,
         },
     },
     test: {
         debug: false,
         client: 'sqlite3',
-        connection: connectionDetails,
+        connection: {
+            filename: ':memory:',
+        },
+        useNullAsDefault: true,
         pool: {
-            min: 2,
-            max: 10,
+            min: 1,
+            max: 1,
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: migrationsDirectory,
         },
         seeds: {
-            directory: './db/seeds',
+            directory: seedsDirectory,
         },
     },
     production: {
@@ -69,10 +78,10 @@ const knexConfig: { [key: string]: Knex.Config } = {
         },
         migrations: {
             tableName: 'knex_migrations',
-            directory: './db/migrations',
+            directory: migrationsDirectory,
         },
         seeds: {
-            directory: './db/seeds',
+            directory: seedsDirectory,
         },
     },
 };
