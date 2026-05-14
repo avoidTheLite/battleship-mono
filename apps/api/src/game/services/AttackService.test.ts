@@ -1,5 +1,4 @@
 import AttackService from "./AttackService.ts";
-import { turnManager } from "../gameState.ts";
 import { AttackError } from "../../common/types/errors.ts";
 import type { GameState, Attack } from "../../common/types/types.ts";
 import createTestGame from "../../common/util/test/createTestGame.ts";
