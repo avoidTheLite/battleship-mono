@@ -34,6 +34,7 @@ class AttackService {
         if (this.isHit(gameState.players[targetPlayerIndex].board_data, coordinates)) {
             this.applyHit(gameState, targetPlayerIndex, coordinates);
         } else {
+            gameState.players[gameState.active_player_index].attack_data[coordinates[0]][coordinates[1]] = "M";
             gameState.players[gameState.active_player_index].last_attack.result = 'miss';
             gameState.players[gameState.active_player_index].last_attack.target = 'O';
         }
@@ -90,6 +91,11 @@ class AttackService {
         gameState.players[gameState.active_player_index].attack_data[coordinates[0]][coordinates[1]] = "H";
         const targetHit: TargetKey = this.getTargetHit(gameState.players[targetPlayerIndex].board_data, coordinates);
         const targetIndex: number = this.getTargetIndex(gameState.players[targetPlayerIndex].ship_data, targetHit);
+        if (targetIndex === -1) {
+            throw new AttackError({
+                message: `Invalid target marker ${targetHit} at ${coordinates}`
+            });
+        }
         gameState.players[gameState.active_player_index].last_attack.target = targetHit;
         gameState.players[targetPlayerIndex].ship_data[targetIndex].hits += 1;
         if (this.targetSunk(targetIndex, gameState.players[targetPlayerIndex].ship_data)) {

@@ -110,6 +110,7 @@ class GameStateController {
             "player.last_attack"
         ).from(`${PLAYER_TABLE} as player`)
         .where('player.game_id', gameID)
+        .orderBy('player.player_index')
         .then((playerRecords: PlayerRecord[]) => {
             if (playerRecords.length !== 2) {
                 throw new PlayerNotFoundError({
