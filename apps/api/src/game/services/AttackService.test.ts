@@ -2,7 +2,7 @@ import AttackService from "./AttackService.ts";
 import { AttackError } from "../../common/types/errors.ts";
 import type { GameState, Attack } from "../../common/types/types.ts";
 import createTestGame from "../../common/util/test/createTestGame.ts";
-import { describe, it, expect, beforeEach } from "@jest/globals"
+import { describe, it, expect, beforeEach, jest } from "@jest/globals"
 
 
 describe('Attack Service Test', () => {

@@ -3,7 +3,7 @@ import { DeployError } from "../../common/types/errors.ts";
 import type { Board, GameState } from "../../common/types/types.ts";
 import createBoard from "../../common/util/createBoard.ts";
 import createTestGame from "../../common/util/test/createTestGame.ts";
-import { describe, it, expect, beforeEach } from "@jest/globals"
+import { describe, it, expect, beforeEach, jest } from "@jest/globals"
 
 describe('Deploy Service Test', () => {
     let mockGameStateController: any;
