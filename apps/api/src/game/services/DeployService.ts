@@ -3,6 +3,15 @@ import { DeployError } from "../../common/types/errors.ts";
 import { turnManager } from "../gameState.ts";
 import { GameStateController } from "../gameState.ts";
 
+const REQUIRED_SHIP_COUNTS: Record<string, number> = {
+    A: 5,
+    B: 4,
+    C: 3,
+    S: 3,
+    D: 2
+};
+const VALID_BOARD_VALUES = new Set(['O', ...Object.keys(REQUIRED_SHIP_COUNTS)]);
+
 export default class DeployService {
     private gameStateController: GameStateController
     constructor(gameStateController: GameStateController) {
@@ -10,19 +19,31 @@ export default class DeployService {
     }
 
     private isValidBoard(board: Board): boolean {
-        let count: number = 0;
-        const expectedCount: number = 17;
+        if (!Array.isArray(board) || board.length !== 10) {
+            return false;
+        }
+        const shipCounts: Record<string, number> = {
+            A: 0,
+            B: 0,
+            C: 0,
+            S: 0,
+            D: 0
+        };
         for (let i = 0; i < 10; i++) {
+            if (!Array.isArray(board[i]) || board[i].length !== 10) {
+                return false;
+            }
             for (let j = 0; j < 10; j++) {
-                if (board[i][j] !== 'O') {
-                    count += 1;
+                const cell = board[i][j];
+                if (!VALID_BOARD_VALUES.has(cell)) {
+                    return false;
+                }
+                if (cell !== 'O') {
+                    shipCounts[cell] += 1;
                 }
             }
         }
-        if (count !== expectedCount) {
-            return false;
-        }
-        return true;
+        return Object.entries(REQUIRED_SHIP_COUNTS).every(([shipKey, requiredCount]) => shipCounts[shipKey] === requiredCount);
     }
     public async deployCommand(gameID: string, deployBoard: Board): Promise<GameState> {
         let gameState = await this.gameStateController.getGame(gameID);
