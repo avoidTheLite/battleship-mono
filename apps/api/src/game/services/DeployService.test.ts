@@ -25,10 +25,10 @@ function createValidDeployBoard(): Board {
 
 function controllerForGame(gameState: GameState): any {
     return {
-        getGame: jest.fn()
+        getGame: jest.fn<() => Promise<GameState>>()
             .mockResolvedValueOnce(gameState)
             .mockImplementation(async () => gameState),
-        saveGame: jest.fn(async (_gameID: string, nextGameState: GameState) => nextGameState)
+        saveGame: jest.fn<(_gameID: string, nextGameState: GameState) => Promise<GameState>>(async (_gameID: string, nextGameState: GameState) => nextGameState)
     };
 }
 
