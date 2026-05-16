@@ -1,6 +1,7 @@
 import type { JestConfigWithTsJest } from 'ts-jest'
 
 const jestConfig: JestConfigWithTsJest = {
+    preset: 'ts-jest/presets/default-esm',
     extensionsToTreatAsEsm: ['.ts'],
     transform: {
         "^.+\\.[tj]sx?$": [
@@ -10,7 +11,6 @@ const jestConfig: JestConfigWithTsJest = {
         },
       ],
     },
-    setupFilesAfterEnv: ['./jest.setup.ts'],
     testEnvironment: 'node',
 }
 

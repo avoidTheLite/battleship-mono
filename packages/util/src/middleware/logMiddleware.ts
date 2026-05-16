@@ -22,7 +22,7 @@ export function logError() {
             // } else {
                 const logger = Logger.configure()
                 logger.error(`Error received: ${err.message}`, { error: err });
-                next(err);
+                return next(err);
             // }
         }
         next();
