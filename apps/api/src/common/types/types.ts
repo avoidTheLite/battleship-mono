@@ -29,10 +29,10 @@ export interface Player extends PlayerBase {
 export interface PlayerRecord extends PlayerBase {
     id: string;
     game_id: string;
-    board_data: string;
-    attack_data: string;
-    ship_data: string;
-    last_attack: string;
+    board_data: string | Board;
+    attack_data: string | Board;
+    ship_data: string | ShipData;
+    last_attack: string | AttackResult | null;
 }
 
 export type Board = [
@@ -80,7 +80,8 @@ export type Attack = {
 
 export type  ResultOptions = "hit" | "miss" | "sunk"
 
-export interface AttackResult extends Attack {
-    result: ResultOptions;
-    target: TargetKey;
+export interface AttackResult {
+    position: [ number, number ] | null;
+    result: ResultOptions | null;
+    target: TargetKey | null;
 }
