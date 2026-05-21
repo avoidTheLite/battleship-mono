@@ -5,10 +5,9 @@ import ShortUniqueId from 'short-unique-id';
 import createBoard from '../common/util/createBoard.ts';
 import createShips from '../common/util/createShips.ts';
 import db from '../db/db.ts';
-import TurnManager from './services/TurnManager.ts';
+import { turnManager } from './services/TurnManager.ts';
 
 let uid: ShortUniqueId = new ShortUniqueId({ length: 10 });
-const turnManager: TurnManager = new TurnManager();
 
 const defaultAttackResult = (): AttackResult => ({
     position: null,

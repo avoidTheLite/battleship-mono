@@ -33,3 +33,5 @@ export default class TurnManager {
     }
 
 }
+
+export const turnManager: TurnManager = new TurnManager();
