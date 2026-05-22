@@ -1,7 +1,9 @@
-import { GameStateController } from "../gameState.ts";
-import type { Attack, Board, GameState, Game, TargetKey, Ship } from "../../common/types/types.ts";
+import type { GameStateController } from "../gameState.ts";
+import type { Attack, Board, GameState, TargetKey, Ship } from "../../common/types/types.ts";
 import { AttackError } from "../../common/types/errors.ts";
-import { turnManager } from "../gameState.ts";
+import TurnManager from "./TurnManager.ts";
+
+const turnManager: TurnManager = new TurnManager();
 
 class AttackService {
     private gameStateController: GameStateController;
@@ -30,10 +32,15 @@ class AttackService {
         }
         
         const targetPlayerIndex: number = (gameState.active_player_index + 1) % 2;
-        gameState.players[gameState.active_player_index].last_attack.position = coordinates;
+        gameState.players[gameState.active_player_index].last_attack = {
+            position: coordinates,
+            result: null,
+            target: null,
+        };
         if (this.isHit(gameState.players[targetPlayerIndex].board_data, coordinates)) {
             this.applyHit(gameState, targetPlayerIndex, coordinates);
         } else {
+            gameState.players[gameState.active_player_index].attack_data[coordinates[0]][coordinates[1]] = "M";
             gameState.players[gameState.active_player_index].last_attack.result = 'miss';
             gameState.players[gameState.active_player_index].last_attack.target = 'O';
         }
@@ -46,11 +53,16 @@ class AttackService {
         return retrievedGameState;
     }
     private isValidAttack(coordinates: [number, number]): boolean {
+        if (!Array.isArray(coordinates)) {
+            return false;
+        }
         if (coordinates.length !== 2) {
             console.log(coordinates.length);
             return false;
         }
         if (
+            !Number.isInteger(coordinates[0]) ||
+            !Number.isInteger(coordinates[1]) ||
             (coordinates[0] > 9) ||
             (coordinates[1] > 9) ||
             (coordinates[0] < 0) ||
@@ -80,7 +92,7 @@ class AttackService {
         return defenderBoard[coordinates[0]][coordinates[1]] as TargetKey;
     }
 
-    private getTargetIndex(shipData: Ship[], shipKey): number {
+    private getTargetIndex(shipData: Ship[], shipKey: TargetKey): number {
         const index = shipData.findIndex((ship) => ship.key === (shipKey));
         console.log(`target index = ${index}`);
         return index
@@ -90,6 +102,11 @@ class AttackService {
         gameState.players[gameState.active_player_index].attack_data[coordinates[0]][coordinates[1]] = "H";
         const targetHit: TargetKey = this.getTargetHit(gameState.players[targetPlayerIndex].board_data, coordinates);
         const targetIndex: number = this.getTargetIndex(gameState.players[targetPlayerIndex].ship_data, targetHit);
+        if (targetIndex === -1) {
+            throw new AttackError({
+                message: `Invalid target marker ${targetHit} at ${coordinates}`
+            });
+        }
         gameState.players[gameState.active_player_index].last_attack.target = targetHit;
         gameState.players[targetPlayerIndex].ship_data[targetIndex].hits += 1;
         if (this.targetSunk(targetIndex, gameState.players[targetPlayerIndex].ship_data)) {
