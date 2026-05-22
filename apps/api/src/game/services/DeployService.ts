@@ -1,7 +1,9 @@
 import type { Board, GameState } from "../../common/types/types.ts";
 import { DeployError } from "../../common/types/errors.ts";
-import { turnManager } from "../gameState.ts";
-import { GameStateController } from "../gameState.ts";
+import TurnManager from "./TurnManager.ts";
+import type { GameStateController } from "../gameState.ts";
+
+const turnManager: TurnManager = new TurnManager();
 
 const EXPECTED_SHIP_COUNTS: Record<string, number> = {
     A: 5,
