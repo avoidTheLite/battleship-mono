@@ -4,7 +4,7 @@ import { AttackError, DeployError } from "../../common/types/errors.ts";
 import type { Attack, Board, GameState } from "../../common/types/types.ts";
 import createTestGame from "../../common/util/test/createTestGame.ts";
 import createBoard from "../../common/util/createBoard.ts";
-import { describe, expect, beforeEach } from "@jest/globals"
+import { describe, expect, beforeEach, jest } from "@jest/globals"
 
 function createPlayGame(): GameState {
     const gameState = createTestGame();
