@@ -55,6 +55,7 @@ describe('Attack Service Test', () => {
             target: 'O'
         });
 
+        savedGameState.active_player_index = 0;
         mockGameStateController.getGame.mockResolvedValueOnce(savedGameState);
         await expect(attackService.attackCommand(gameID, { position: [0, 0] })).rejects.toThrow(AttackError);
     });
