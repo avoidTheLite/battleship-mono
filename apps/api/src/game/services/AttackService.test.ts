@@ -79,9 +79,10 @@ describe('Deploy Service Test', () => {
         const gameState = createTestGame();
         const deployBoard = createBoard();
         const mockGameStateController: any = {
-            getGame: jest.fn().mockResolvedValueOnce(gameState),
+            getGame: jest.fn(),
             saveGame: jest.fn()
         };
+        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
         const deployService = new DeployService(mockGameStateController);
 
         for (let i = 0; i < 17; i++) {
