@@ -10,6 +10,9 @@ const jestConfig: JestConfigWithTsJest = {
         },
       ],
     },
+    moduleNameMapper: {
+        '^@battleship/util/(.*)$': '<rootDir>/../../../packages/util/src/$1.ts',
+    },
     setupFilesAfterEnv: ['./jest.setup.ts'],
     testEnvironment: 'node',
 }
