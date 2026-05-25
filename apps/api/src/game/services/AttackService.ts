@@ -1,7 +1,9 @@
-import { GameStateController } from "../gameState.ts";
+import type { GameStateController } from "../gameState.ts";
 import type { Attack, Board, GameState, Game, TargetKey, Ship } from "../../common/types/types.ts";
 import { AttackError } from "../../common/types/errors.ts";
-import { turnManager } from "../gameState.ts";
+import TurnManager from "./TurnManager.ts";
+
+const turnManager = new TurnManager();
 
 class AttackService {
     private gameStateController: GameStateController;

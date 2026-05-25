@@ -1,8 +1,10 @@
 import type { Board, GameState } from "../../common/types/types.ts";
 import { DeployError } from "../../common/types/errors.ts";
-import { turnManager } from "../gameState.ts";
-import { GameStateController } from "../gameState.ts";
+import type { GameStateController } from "../gameState.ts";
 import createShips from "../../common/util/createShips.ts";
+import TurnManager from "./TurnManager.ts";
+
+const turnManager = new TurnManager();
 
 export default class DeployService {
     private gameStateController: GameStateController
