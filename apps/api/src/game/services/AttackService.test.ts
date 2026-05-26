@@ -88,6 +88,13 @@ describe('Attack Service Test', () => {
         expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
     });
 
+    it('rejects attacks with a missing position without throwing a TypeError', async () => {
+        const attack = {} as Attack;
+
+        await expect(attackService.attackCommand('test', attack)).rejects.toThrow(AttackError);
+        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
+    });
+
     it('throws a controlled attack error for invalid persisted ship markers', async () => {
         gameState.players[1].board_data[5][5] = 'X';
         const attack: Attack = {

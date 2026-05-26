@@ -26,11 +26,10 @@ class AttackService {
                 message: 'Game is not in play phase'
             });
         }
-        const coordinates: [number, number] = attack.position;
+        const coordinates = attack?.position;
         if (!this.isValidAttack(coordinates)) {
-            console.log(`${(coordinates[0] > 9)}, ${(coordinates[1] > 9)}, ${(coordinates[0] < 0)}, ${(coordinates[1] < 0)}`);
             throw new AttackError({
-                message: `Invalid attack submitted ${attack.position}. Must be between [0-9][0-9]`
+                message: `Invalid attack submitted ${JSON.stringify(attack?.position)}. Must be between [0-9][0-9]`
             });
         }
         if (this.alreadyAttacked(gameState.players[gameState.active_player_index].attack_data, coordinates)) {
@@ -61,7 +60,7 @@ class AttackService {
 
         return retrievedGameState;
     }
-    private isValidAttack(coordinates: [number, number]): boolean {
+    private isValidAttack(coordinates: unknown): coordinates is [number, number] {
         if (!Array.isArray(coordinates) || coordinates.length !== 2) {
             return false;
         }
