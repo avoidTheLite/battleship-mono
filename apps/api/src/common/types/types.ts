@@ -78,9 +78,10 @@ export type Attack = {
     position: [ number, number ]
 }
 
-export type  ResultOptions = "hit" | "miss" | "sunk"
+export type ResultOptions = "hit" | "miss" | "sunk"
 
-export interface AttackResult extends Attack {
-    result: ResultOptions;
-    target: TargetKey;
+export interface AttackResult {
+    position: [ number, number ] | null;
+    result: ResultOptions | null;
+    target: TargetKey | null;
 }
