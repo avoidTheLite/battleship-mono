@@ -21,7 +21,7 @@ class AttackService {
         }
         if (!this.isValidAttack(attack)) {
             throw new AttackError({
-                message: `Invalid attack submitted ${JSON.stringify(attack?.position)}. Must be between [0-9][0-9]`
+                message: 'Invalid attack submitted. Must be between [0-9][0-9]'
             });
         }
         const coordinates: [number, number] = attack.position;
@@ -55,8 +55,8 @@ class AttackService {
 
         return retrievedGameState;
     }
-    private isValidAttack(attack: Attack): attack is Attack {
-        if (!attack || !Array.isArray(attack.position) || attack.position.length !== 2) {
+    private isValidAttack(attack: unknown): attack is Attack {
+        if (!attack || typeof attack !== 'object' || !('position' in attack) || !Array.isArray(attack.position) || attack.position.length !== 2) {
             return false;
         }
         const coordinates = attack.position;
