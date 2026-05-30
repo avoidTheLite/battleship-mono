@@ -1,7 +1,10 @@
-import { GameStateController } from "../gameState.ts";
-import type { Attack, Board, GameState, Game, TargetKey, Ship } from "../../common/types/types.ts";
+import type { GameStateController } from "../gameState.ts";
+import type { Attack, Board, GameState, TargetKey, Ship } from "../../common/types/types.ts";
 import { AttackError } from "../../common/types/errors.ts";
-import { turnManager } from "../gameState.ts";
+import TurnManager from "./TurnManager.ts";
+
+const turnManager: TurnManager = new TurnManager();
+const shipTargetKeys: TargetKey[] = ["A", "B", "C", "S", "D"];
 
 class AttackService {
     private gameStateController: GameStateController;
@@ -16,13 +19,12 @@ class AttackService {
                 message: 'Game is not in play phase'
             });
         }
-        const coordinates: [number, number] = attack.position;
-        if (!this.isValidAttack(coordinates)) {
-            console.log(`${(coordinates[0] > 9)}, ${(coordinates[1] > 9)}, ${(coordinates[0] < 0)}, ${(coordinates[1] < 0)}`);
+        if (!this.isValidAttack(attack)) {
             throw new AttackError({
-                message: `Invalid attack submitted ${attack.position}. Must be between [0-9][0-9]`
+                message: 'Invalid attack submitted. Must be between [0-9][0-9]'
             });
         }
+        const coordinates: [number, number] = attack.position;
         if (this.alreadyAttacked(gameState.players[gameState.active_player_index].attack_data, coordinates)) {
             throw new AttackError({
                 message: `Already attacked this location ${attack.position}`
@@ -30,10 +32,18 @@ class AttackService {
         }
         
         const targetPlayerIndex: number = (gameState.active_player_index + 1) % 2;
+        if (!gameState.players[gameState.active_player_index].last_attack) {
+            gameState.players[gameState.active_player_index].last_attack = {
+                position: null,
+                result: null,
+                target: null
+            };
+        }
         gameState.players[gameState.active_player_index].last_attack.position = coordinates;
         if (this.isHit(gameState.players[targetPlayerIndex].board_data, coordinates)) {
             this.applyHit(gameState, targetPlayerIndex, coordinates);
         } else {
+            gameState.players[gameState.active_player_index].attack_data[coordinates[0]][coordinates[1]] = "M";
             gameState.players[gameState.active_player_index].last_attack.result = 'miss';
             gameState.players[gameState.active_player_index].last_attack.target = 'O';
         }
@@ -45,12 +55,14 @@ class AttackService {
 
         return retrievedGameState;
     }
-    private isValidAttack(coordinates: [number, number]): boolean {
-        if (coordinates.length !== 2) {
-            console.log(coordinates.length);
+    private isValidAttack(attack: unknown): attack is Attack {
+        if (!attack || typeof attack !== 'object' || !('position' in attack) || !Array.isArray(attack.position) || attack.position.length !== 2) {
             return false;
         }
+        const coordinates = attack.position;
         if (
+            !Number.isInteger(coordinates[0]) ||
+            !Number.isInteger(coordinates[1]) ||
             (coordinates[0] > 9) ||
             (coordinates[1] > 9) ||
             (coordinates[0] < 0) ||
@@ -80,16 +92,26 @@ class AttackService {
         return defenderBoard[coordinates[0]][coordinates[1]] as TargetKey;
     }
 
-    private getTargetIndex(shipData: Ship[], shipKey): number {
+    private getTargetIndex(shipData: Ship[], shipKey: TargetKey): number {
         const index = shipData.findIndex((ship) => ship.key === (shipKey));
         console.log(`target index = ${index}`);
         return index
     }
 
     private applyHit(gameState: GameState, targetPlayerIndex: number, coordinates: [number, number]): void {
-        gameState.players[gameState.active_player_index].attack_data[coordinates[0]][coordinates[1]] = "H";
         const targetHit: TargetKey = this.getTargetHit(gameState.players[targetPlayerIndex].board_data, coordinates);
+        if (!shipTargetKeys.includes(targetHit)) {
+            throw new AttackError({
+                message: `Invalid target marker ${targetHit} at ${coordinates}`
+            });
+        }
         const targetIndex: number = this.getTargetIndex(gameState.players[targetPlayerIndex].ship_data, targetHit);
+        if (targetIndex === -1) {
+            throw new AttackError({
+                message: `No ship data found for target ${targetHit}`
+            });
+        }
+        gameState.players[gameState.active_player_index].attack_data[coordinates[0]][coordinates[1]] = "H";
         gameState.players[gameState.active_player_index].last_attack.target = targetHit;
         gameState.players[targetPlayerIndex].ship_data[targetIndex].hits += 1;
         if (this.targetSunk(targetIndex, gameState.players[targetPlayerIndex].ship_data)) {
@@ -101,7 +123,7 @@ class AttackService {
         }
     }
 
-    private targetSunk(targetIndex, shipData): boolean {
+    private targetSunk(targetIndex: number, shipData: Ship[]): boolean {
         if (shipData[targetIndex].hits === shipData[targetIndex].size) {
             return true;
         } else {
