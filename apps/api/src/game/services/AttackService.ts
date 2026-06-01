@@ -12,7 +12,7 @@ class AttackService {
         this.gameStateController = gameStateController;
     }
 
-    public async attackCommand(gameID: string, attack: Attack): Promise<GameState> {
+    public async attackCommand(gameID: string, attack: Partial<Attack> | null | undefined): Promise<GameState> {
         let gameState = await this.gameStateController.getGame(gameID);
         if (gameState.phase !== 'play') {
             throw new AttackError({
@@ -57,7 +57,7 @@ class AttackService {
 
         return retrievedGameState;
     }
-    private isValidAttack(attack: Attack): attack is Attack {
+    private isValidAttack(attack: Partial<Attack> | null | undefined): attack is Attack {
         if (!attack || !Array.isArray(attack.position) || attack.position.length !== 2) {
             return false;
         }
