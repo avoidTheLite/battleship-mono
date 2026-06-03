@@ -1,10 +1,11 @@
 import type { Board, GameState } from "../../common/types/types.ts";
 import { DeployError } from "../../common/types/errors.ts";
-import { turnManager } from "../gameState.ts";
-import { GameStateController } from "../gameState.ts";
+import type { GameStateController } from "../gameState.ts";
+import TurnManager from "./TurnManager.ts";
 
 export default class DeployService {
     private gameStateController: GameStateController
+    private turnManager: TurnManager;
     private readonly expectedShipCounts: Record<string, number> = {
         A: 5,
         B: 4,
@@ -15,6 +16,7 @@ export default class DeployService {
 
     constructor(gameStateController: GameStateController) {
         this.gameStateController = gameStateController;
+        this.turnManager = new TurnManager();
     }
 
     private isBlankBoard(board: Board): boolean {
@@ -74,7 +76,7 @@ export default class DeployService {
         }
         gameState.players[gameState.active_player_index].board_data = deployBoard;
         
-        gameState = turnManager.endTurnDeployPhase(gameState);
+        gameState = this.turnManager.endTurnDeployPhase(gameState);
         await this.gameStateController.saveGame(gameID, gameState);
         const retrievedGameState: GameState = await this.gameStateController.getGame(gameID);
         

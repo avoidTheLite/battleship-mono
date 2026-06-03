@@ -1,14 +1,16 @@
-import { GameStateController } from "../gameState.ts";
+import type { GameStateController } from "../gameState.ts";
 import type { Attack, AttackPosition, Board, GameState, TargetKey, Ship } from "../../common/types/types.ts";
 import { AttackError } from "../../common/types/errors.ts";
-import { turnManager } from "../gameState.ts";
+import TurnManager from "./TurnManager.ts";
 
 class AttackService {
     private gameStateController: GameStateController;
+    private turnManager: TurnManager;
     private readonly shipKeys = new Set<string>(['A', 'B', 'C', 'S', 'D']);
 
     constructor(gameStateController: GameStateController) {
         this.gameStateController = gameStateController;
+        this.turnManager = new TurnManager();
     }
 
     public async attackCommand(gameID: string, attack: Attack): Promise<GameState> {
@@ -42,7 +44,7 @@ class AttackService {
             this.applyMiss(gameState, coordinates);
         }
 
-        gameState = turnManager.endTurnPlayPhase(gameState);
+        gameState = this.turnManager.endTurnPlayPhase(gameState);
         gameState = await this.gameStateController.saveGame(gameID, gameState);
 
         const retrievedGameState: GameState = await this.gameStateController.getGame(gameID);
