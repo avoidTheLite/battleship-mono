@@ -32,7 +32,7 @@ export interface PlayerRecord extends PlayerBase {
     board_data: string;
     attack_data: string;
     ship_data: string;
-    last_attack: string;
+    last_attack: string | null;
 }
 
 export type Board = [
@@ -74,13 +74,16 @@ export type ShipData = [
     Ship
 ]
 
+export type AttackPosition = [ number, number ];
+
 export type Attack = {
-    position: [ number, number ]
+    position: AttackPosition
 }
 
 export type  ResultOptions = "hit" | "miss" | "sunk"
 
-export interface AttackResult extends Attack {
-    result: ResultOptions;
-    target: TargetKey;
+export interface AttackResult {
+    position: AttackPosition | null;
+    result: ResultOptions | null;
+    target: TargetKey | null;
 }
