@@ -56,6 +56,7 @@ describe('Attack Service Test', () => {
         });
         expect(result.active_player_index).toBe(1);
 
+        result.active_player_index = 0;
         mockGameStateController.getGame.mockResolvedValueOnce(result);
         await expect(attackService.attackCommand(gameID, attack)).rejects.toThrow(AttackError);
         expect(mockGameStateController.saveGame).toHaveBeenCalledTimes(1);
