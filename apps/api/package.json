@@ -5,7 +5,7 @@
   "main": "index.ts",
   "type": "module",
   "scripts": {
-    "test": "NODE_ENV=test jest --config src/jest.config.ts --runInBand",
+    "test": "NODE_ENV=test NODE_OPTIONS=--experimental-vm-modules node ../../node_modules/jest/bin/jest.js --config src/jest.config.ts --runInBand",
     "build": "pnpm exec tsc --build tsconfig.json",
     "clean": "pnpm exec tsc --build tsconfig.json --clean",
     "dev": "NODE_ENV=local concurrently \"tsc --noEmit --watch\" \"nodemon -q src/index.ts\"",
