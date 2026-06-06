@@ -136,23 +136,23 @@ class GameStateController {
                     message: `Invalid number of players retrie3ved. Number of players retrieved was ${playerRecords.length}`
                 });
             }
-            const players = [{
+            const players: Player[] = [{
                 id: playerRecords[0].id,
                 username: playerRecords[0].username,
                 player_index: playerRecords[0].player_index,
                 game_id: playerRecords[0].game_id,
-                board_data: parseJsonField(playerRecords[0].board_data),
-                attack_data: parseJsonField(playerRecords[0].attack_data),
-                ship_data: parseJsonField(playerRecords[0].ship_data),
+                board_data: parseJsonField<Board>(playerRecords[0].board_data),
+                attack_data: parseJsonField<Board>(playerRecords[0].attack_data),
+                ship_data: parseJsonField<ShipData>(playerRecords[0].ship_data),
                 last_attack: normalizeLastAttack(playerRecords[0].last_attack)
             },{
                 id: playerRecords[1].id,
                 username: playerRecords[1].username,
                 player_index: playerRecords[1].player_index,
                 game_id: playerRecords[1].game_id,
-                board_data: parseJsonField(playerRecords[1].board_data),
-                attack_data: parseJsonField(playerRecords[1].attack_data),
-                ship_data: parseJsonField(playerRecords[1].ship_data),
+                board_data: parseJsonField<Board>(playerRecords[1].board_data),
+                attack_data: parseJsonField<Board>(playerRecords[1].attack_data),
+                ship_data: parseJsonField<ShipData>(playerRecords[1].ship_data),
                 last_attack: normalizeLastAttack(playerRecords[1].last_attack)
             }];
             return players;
