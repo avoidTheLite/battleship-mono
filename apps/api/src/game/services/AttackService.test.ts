@@ -12,8 +12,7 @@ describe('Attack Service Test', () => {
 
     beforeEach(() => {
         mockGameStateController = {
-            getGame: jest.fn(),
-            saveGame: jest.fn()
+            updateGame: jest.fn()
         };
         attackService = new AttackService(mockGameStateController);
     });
@@ -32,18 +31,14 @@ describe('Attack Service Test', () => {
             position: [0, 0]
         };
 
-        mockGameStateController.getGame.mockResolvedValueOnce({
-            phase: 'deploy'
-        });
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(createTestGame()));
         await expect(attackService.attackCommand(gameID, attack)).rejects.toThrow(AttackError);
     });
 
     it('should persist a miss in attack data and last attack', async () => {
         const gameID = 'test';
         const gameState = createPlayGame();
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
-        mockGameStateController.saveGame.mockImplementationOnce(async (_gameID: string, savedGameState: GameState) => savedGameState);
-        mockGameStateController.getGame.mockImplementationOnce(async () => mockGameStateController.saveGame.mock.calls[0][1]);
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(gameState));
 
         const result = await attackService.attackCommand(gameID, { position: [4, 4] });
 
@@ -60,29 +55,25 @@ describe('Attack Service Test', () => {
         const gameID = 'test';
         const gameState = createPlayGame();
         gameState.players[0].attack_data[4][4] = 'M';
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(gameState));
 
         await expect(attackService.attackCommand(gameID, { position: [4, 4] })).rejects.toThrow(AttackError);
-        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
     });
 
     it('should reject invalid persisted target markers without saving corrupted state', async () => {
         const gameID = 'test';
         const gameState = createPlayGame();
         gameState.players[1].board_data[0][0] = 'X';
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(gameState));
 
         await expect(attackService.attackCommand(gameID, { position: [0, 0] })).rejects.toThrow(AttackError);
-        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
     });
 
     it('should normalize a null last attack before recording an attack', async () => {
         const gameID = 'test';
         const gameState = createPlayGame();
         gameState.players[0].last_attack = null;
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
-        mockGameStateController.saveGame.mockImplementationOnce(async (_gameID: string, savedGameState: GameState) => savedGameState);
-        mockGameStateController.getGame.mockImplementationOnce(async () => mockGameStateController.saveGame.mock.calls[0][1]);
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(gameState));
 
         const result = await attackService.attackCommand(gameID, { position: [1, 1] });
 
@@ -95,9 +86,8 @@ describe('Attack Service Test', () => {
 
     it('should reject malformed attacks instead of throwing a TypeError', async () => {
         const gameID = 'test';
-        mockGameStateController.getGame.mockResolvedValueOnce(createPlayGame());
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(createPlayGame()));
 
         await expect(attackService.attackCommand(gameID, {} as Attack)).rejects.toThrow(AttackError);
-        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
     });
 })
