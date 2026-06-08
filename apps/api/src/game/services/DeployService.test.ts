@@ -11,8 +11,7 @@ describe('Deploy Service Test', () => {
 
     beforeEach(() => {
         mockGameStateController = {
-            getGame: jest.fn(),
-            saveGame: jest.fn()
+            updateGame: jest.fn()
         };
         deployService = new DeployService(mockGameStateController);
     });
@@ -46,10 +45,9 @@ describe('Deploy Service Test', () => {
         for (let i = 0; i < 17; i++) {
             invalidBoard[Math.floor(i / 10)][i % 10] = 'X';
         }
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(gameState));
 
         await expect(deployService.deployCommand(gameID, invalidBoard)).rejects.toThrow(DeployError);
-        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
     });
 
     it('should reject boards that do not contain the exact ship counts', async () => {
@@ -57,19 +55,16 @@ describe('Deploy Service Test', () => {
         const gameState = createTestGame();
         const invalidBoard = createValidDeployBoard();
         invalidBoard[0][0] = 'B';
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(gameState));
 
         await expect(deployService.deployCommand(gameID, invalidBoard)).rejects.toThrow(DeployError);
-        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
     });
 
     it('should save valid deploy boards and advance the turn', async () => {
         const gameID = 'test';
         const gameState = createTestGame();
         const validBoard = createValidDeployBoard();
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
-        mockGameStateController.saveGame.mockImplementationOnce(async (_gameID: string, savedGameState: GameState) => savedGameState);
-        mockGameStateController.getGame.mockImplementationOnce(async () => mockGameStateController.saveGame.mock.calls[0][1]);
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(gameState));
 
         const result = await deployService.deployCommand(gameID, validBoard);
 

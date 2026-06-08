@@ -14,41 +14,37 @@ class AttackService {
     }
 
     public async attackCommand(gameID: string, attack: Attack): Promise<GameState> {
-        let gameState = await this.gameStateController.getGame(gameID);
-        if (gameState.phase !== 'play') {
-            throw new AttackError({
-                message: 'Game is not in play phase'
-            });
-        }
-        if (!this.isValidAttack(attack)) {
-            throw new AttackError({
-                message: `Invalid attack submitted ${JSON.stringify(attack)}. Must be between [0-9][0-9]`
-            });
-        }
-        const coordinates: [number, number] = attack.position;
-        if (this.alreadyAttacked(gameState.players[gameState.active_player_index].attack_data, coordinates)) {
-            throw new AttackError({
-                message: `Already attacked this location ${attack.position}`
-            });
-        }
-        
-        const targetPlayerIndex: number = (gameState.active_player_index + 1) % 2;
-        const lastAttack = this.ensureLastAttack(gameState);
-        lastAttack.position = coordinates;
-        if (this.isHit(gameState.players[targetPlayerIndex].board_data, coordinates)) {
-            this.applyHit(gameState, targetPlayerIndex, coordinates);
-        } else {
-            gameState.players[gameState.active_player_index].attack_data[coordinates[0]][coordinates[1]] = "M";
-            lastAttack.result = 'miss';
-            lastAttack.target = 'O';
-        }
+        return this.gameStateController.updateGame(gameID, (gameState) => {
+            if (gameState.phase !== 'play') {
+                throw new AttackError({
+                    message: 'Game is not in play phase'
+                });
+            }
+            if (!this.isValidAttack(attack)) {
+                throw new AttackError({
+                    message: `Invalid attack submitted ${JSON.stringify(attack)}. Must be between [0-9][0-9]`
+                });
+            }
+            const coordinates: [number, number] = attack.position;
+            if (this.alreadyAttacked(gameState.players[gameState.active_player_index].attack_data, coordinates)) {
+                throw new AttackError({
+                    message: `Already attacked this location ${attack.position}`
+                });
+            }
+            
+            const targetPlayerIndex: number = (gameState.active_player_index + 1) % 2;
+            const lastAttack = this.ensureLastAttack(gameState);
+            lastAttack.position = coordinates;
+            if (this.isHit(gameState.players[targetPlayerIndex].board_data, coordinates)) {
+                this.applyHit(gameState, targetPlayerIndex, coordinates);
+            } else {
+                gameState.players[gameState.active_player_index].attack_data[coordinates[0]][coordinates[1]] = "M";
+                lastAttack.result = 'miss';
+                lastAttack.target = 'O';
+            }
 
-        gameState = turnManager.endTurnPlayPhase(gameState);
-        gameState = await this.gameStateController.saveGame(gameID, gameState);
-
-        const retrievedGameState: GameState = await this.gameStateController.getGame(gameID);
-
-        return retrievedGameState;
+            return turnManager.endTurnPlayPhase(gameState);
+        });
     }
     private isValidAttack(attack: Attack): attack is Attack {
         if (!attack || !Array.isArray(attack.position) || attack.position.length !== 2) {
