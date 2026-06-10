@@ -41,7 +41,7 @@ function parseLastAttack(value: PlayerRecord['last_attack']): AttackResult {
         };
     }
 
-    return parseStoredJson(value);
+    return parseStoredJson<AttackResult>(value);
 }
 
 class GameStateController {

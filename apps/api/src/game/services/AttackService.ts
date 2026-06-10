@@ -20,7 +20,7 @@ class AttackService {
         }
         if (!this.isValidAttack(attack)) {
             throw new AttackError({
-                message: `Invalid attack submitted ${JSON.stringify(attack?.position)}. Must be between [0-9][0-9]`
+                message: `Invalid attack submitted ${JSON.stringify(attack)}. Must be between [0-9][0-9]`
             });
         }
         const coordinates: [number, number] = attack.position;
