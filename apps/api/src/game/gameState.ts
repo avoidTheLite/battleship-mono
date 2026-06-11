@@ -1,5 +1,6 @@
-import type { PlayerBase, Player, PlayerRecord, GameState, Game, Board, ShipData, Attack } from '../common/types/types.ts';
-import { DeployError, NewGameError, PlayerNotFoundError, EndTurnError, AttackError, SaveGameError } from '../common/types/errors.ts';
+import type { Knex } from 'knex';
+import type { PlayerBase, Player, PlayerRecord, GameState, Game, AttackResult } from '../common/types/types.ts';
+import { NewGameError, PlayerNotFoundError, SaveGameError } from '../common/types/errors.ts';
 import { GAMESTATE_TABLE, PLAYER_TABLE } from '../db/tables.ts';
 import ShortUniqueId from 'short-unique-id';
 import createBoard from '../common/util/createBoard.ts';
@@ -9,6 +10,25 @@ import TurnManager from './services/TurnManager.ts';
 
 let uid: ShortUniqueId = new ShortUniqueId({ length: 10 });
 const turnManager: TurnManager = new TurnManager();
+
+function emptyAttackResult(): AttackResult {
+    return {
+        position: null,
+        result: null,
+        target: null
+    };
+}
+
+function parseJsonColumn<T>(value: string | T): T {
+    return typeof value === 'string' ? JSON.parse(value) : value;
+}
+
+function parseLastAttack(value: string | AttackResult | null): AttackResult {
+    if (!value) {
+        return emptyAttackResult();
+    }
+    return parseJsonColumn<AttackResult>(value);
+}
 
 function convertPlayersToPlayerRecords(players: Player[]): PlayerRecord[] {
     let playerRecords: PlayerRecord[] = [];
@@ -21,11 +41,24 @@ function convertPlayersToPlayerRecords(players: Player[]): PlayerRecord[] {
             board_data: JSON.stringify(players[i].board_data),
             attack_data: JSON.stringify(players[i].attack_data),
             ship_data: JSON.stringify(players[i].ship_data),
-            last_attack: JSON.stringify(players[i].last_attack)
+            last_attack: JSON.stringify(players[i].last_attack ?? emptyAttackResult())
         }
         playerRecords.push(playerRecord);
     }
     return playerRecords;
+}
+
+function convertPlayerRecordsToPlayers(playerRecords: PlayerRecord[]): Player[] {
+    return playerRecords.map((playerRecord) => ({
+        id: playerRecord.id,
+        username: playerRecord.username,
+        player_index: playerRecord.player_index,
+        game_id: playerRecord.game_id,
+        board_data: parseJsonColumn<Player['board_data']>(playerRecord.board_data),
+        attack_data: parseJsonColumn<Player['attack_data']>(playerRecord.attack_data),
+        ship_data: parseJsonColumn<Player['ship_data']>(playerRecord.ship_data),
+        last_attack: parseLastAttack(playerRecord.last_attack)
+    }));
 }
 
 class GameStateController {
@@ -75,21 +108,34 @@ class GameStateController {
                 target: null
             })
         }
-        await db('games').insert(game);
-        await db('players').insert([player1, player2]);
-        const gameState = await this.getGame(game.id);
-        return gameState;
+        return db.transaction(async (trx) => {
+            await trx('games').insert(game);
+            await trx('players').insert([player1, player2]);
+            return this.getGameWithClient(game.id, trx);
+        });
 
     }
+
     public async getGame(gameID: string): Promise<GameState> {
-        const game = await db('games').select(
+        return this.getGameWithClient(gameID, db);
+    }
+
+    private async getGameWithClient(gameID: string, client: Knex | Knex.Transaction, lockRows = false): Promise<GameState> {
+        let gameQuery = client('games').select(
             "game.id",
             "game.name",
             "game.phase",
             "game.turn",
             "game.active_player_index"
         ).from(`${GAMESTATE_TABLE} as game`)
-        .where('game.id', gameID).first()
+        .where('game.id', gameID)
+        .first();
+
+        if (lockRows) {
+            gameQuery = gameQuery.forUpdate();
+        }
+
+        const game = await gameQuery
         .then((gameRecord: Game) => {
             if (!gameRecord) {
                 throw new PlayerNotFoundError({
@@ -99,7 +145,7 @@ class GameStateController {
             return gameRecord;
         })
 
-        const players = await db.select(
+        let playersQuery = client.select(
             "player.id",
             "player.username",
             "player.player_index",
@@ -110,32 +156,20 @@ class GameStateController {
             "player.last_attack"
         ).from(`${PLAYER_TABLE} as player`)
         .where('player.game_id', gameID)
+        .orderBy('player.player_index', 'asc');
+
+        if (lockRows) {
+            playersQuery = playersQuery.forUpdate();
+        }
+
+        const players = await playersQuery
         .then((playerRecords: PlayerRecord[]) => {
             if (playerRecords.length !== 2) {
                 throw new PlayerNotFoundError({
                     message: `Invalid number of players retrie3ved. Number of players retrieved was ${playerRecords.length}`
                 });
             }
-            const players = [{
-                id: playerRecords[0].id,
-                username: playerRecords[0].username,
-                player_index: playerRecords[0].player_index,
-                game_id: playerRecords[0].game_id,
-                board_data: typeof playerRecords[0].board_data === 'string' ? JSON.parse(playerRecords[0].board_data) : playerRecords[0].board_data,
-                attack_data: typeof playerRecords[0].attack_data === 'string' ? JSON.parse(playerRecords[0].attack_data) : playerRecords[0].attack_data,
-                ship_data: typeof playerRecords[0].ship_data === 'string' ? JSON.parse(playerRecords[0].ship_data) : playerRecords[0].ship_data,
-                last_attack: typeof playerRecords[0].last_attack === 'string' ? JSON.parse(playerRecords[0].last_attack) : playerRecords[0].last_attack
-            },{
-                id: playerRecords[1].id,
-                username: playerRecords[1].username,
-                player_index: playerRecords[1].player_index,
-                game_id: playerRecords[1].game_id,
-                board_data: typeof playerRecords[1].board_data === 'string' ? JSON.parse(playerRecords[1].board_data) : playerRecords[1].board_data,
-                attack_data: typeof playerRecords[1].attack_data === 'string' ? JSON.parse(playerRecords[1].attack_data) : playerRecords[1].attack_data,
-                ship_data: typeof playerRecords[1].ship_data === 'string' ? JSON.parse(playerRecords[1].ship_data) : playerRecords[1].ship_data,
-                last_attack: typeof playerRecords[1].last_attack === 'string' ? JSON.parse(playerRecords[1].last_attack) : playerRecords[1].last_attack
-            }];
-            return players;
+            return convertPlayerRecordsToPlayers(playerRecords);
         });
         const gameState = {
             id: game.id,
@@ -152,10 +186,23 @@ class GameStateController {
     }
 
     public async saveGame(gameID: string, gameState: GameState): Promise<GameState> {
+        return db.transaction(async (trx) => this.saveGameWithClient(gameID, gameState, trx));
+    }
+
+    public async updateGame(gameID: string, updateGameState: (gameState: GameState) => GameState | Promise<GameState>): Promise<GameState> {
+        return db.transaction(async (trx) => {
+            const currentGameState = await this.getGameWithClient(gameID, trx, true);
+            const updatedGameState = await updateGameState(currentGameState);
+            await this.saveGameWithClient(gameID, updatedGameState, trx);
+            return updatedGameState;
+        });
+    }
+
+    private async saveGameWithClient(gameID: string, gameState: GameState, client: Knex | Knex.Transaction): Promise<GameState> {
         const playerRecords: PlayerRecord[] = convertPlayersToPlayerRecords(gameState.players);
         for (let i = 0; i < playerRecords.length; i++) {
             try{
-                await db('players').where('id', playerRecords[i].id).update(playerRecords[i]);
+                await client('players').where('id', playerRecords[i].id).update(playerRecords[i]);
             } catch (error) {
                 throw new SaveGameError({
                     message: `Error saving game ${error}`
@@ -170,7 +217,7 @@ class GameStateController {
             active_player_index: gameState.active_player_index
         };
         try{
-            await db('games').where('id', gameID).update(gameRecord);
+            await client('games').where('id', gameID).update(gameRecord);
         } catch (error) {
             throw new SaveGameError({
                 message: `Error saving game ${error}`
