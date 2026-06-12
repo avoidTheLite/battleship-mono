@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import type { PlayerBase, Player, PlayerRecord, GameState, Game, AttackResult } from '../common/types/types.ts';
+import type { PlayerBase, Player, PlayerRecord, GameState, Game, AttackResult, Board, ShipData } from '../common/types/types.ts';
 import { DeployError, NewGameError, PlayerNotFoundError, EndTurnError, AttackError, SaveGameError } from '../common/types/errors.ts';
 import { GAMESTATE_TABLE, PLAYER_TABLE } from '../db/tables.ts';
 import ShortUniqueId from 'short-unique-id';
@@ -39,9 +39,9 @@ function convertPlayerRecordToPlayer(playerRecord: PlayerRecord): Player {
         username: playerRecord.username,
         player_index: playerRecord.player_index,
         game_id: playerRecord.game_id,
-        board_data: parseJsonField(playerRecord.board_data),
-        attack_data: parseJsonField(playerRecord.attack_data),
-        ship_data: parseJsonField(playerRecord.ship_data),
+        board_data: parseJsonField<Board>(playerRecord.board_data),
+        attack_data: parseJsonField<Board>(playerRecord.attack_data),
+        ship_data: parseJsonField<ShipData>(playerRecord.ship_data),
         last_attack: parseJsonField(playerRecord.last_attack, createEmptyLastAttack)
     };
 }
