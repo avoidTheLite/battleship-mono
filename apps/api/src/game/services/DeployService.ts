@@ -1,28 +1,54 @@
-import type { Board, GameState } from "../../common/types/types.ts";
+import type { Board, GameState, TargetKey } from "../../common/types/types.ts";
 import { DeployError } from "../../common/types/errors.ts";
-import { turnManager } from "../gameState.ts";
-import { GameStateController } from "../gameState.ts";
+import type { GameStateController } from "../gameState.ts";
+import TurnManager from "./TurnManager.ts";
+
+const expectedShipCounts: Record<Exclude<TargetKey, "O">, number> = {
+    A: 5,
+    B: 4,
+    C: 3,
+    S: 3,
+    D: 2,
+};
+
+const validMarkers = new Set<string>(["O", ...Object.keys(expectedShipCounts)]);
 
 export default class DeployService {
     private gameStateController: GameStateController
+    private turnManager: TurnManager
     constructor(gameStateController: GameStateController) {
         this.gameStateController = gameStateController;
+        this.turnManager = new TurnManager();
     }
 
     private isValidBoard(board: Board): boolean {
-        let count: number = 0;
-        const expectedCount: number = 17;
+        if (!Array.isArray(board) || board.length !== 10) {
+            return false;
+        }
+        const shipCounts: Record<string, number> = {
+            A: 0,
+            B: 0,
+            C: 0,
+            S: 0,
+            D: 0,
+        };
         for (let i = 0; i < 10; i++) {
+            if (!Array.isArray(board[i]) || board[i].length !== 10) {
+                return false;
+            }
             for (let j = 0; j < 10; j++) {
-                if (board[i][j] !== 'O') {
-                    count += 1;
+                const marker = board[i][j];
+                if (!validMarkers.has(marker)) {
+                    return false;
+                }
+                if (marker !== "O") {
+                    shipCounts[marker] += 1;
                 }
             }
         }
-        if (count !== expectedCount) {
-            return false;
-        }
-        return true;
+        return Object.entries(expectedShipCounts).every(([marker, expectedCount]) => {
+            return shipCounts[marker] === expectedCount;
+        });
     }
     public async deployCommand(gameID: string, deployBoard: Board): Promise<GameState> {
         let gameState = await this.gameStateController.getGame(gameID);
@@ -33,7 +59,7 @@ export default class DeployService {
         }
         gameState.players[gameState.active_player_index].board_data = deployBoard;
         
-        gameState = turnManager.endTurnDeployPhase(gameState);
+        gameState = this.turnManager.endTurnDeployPhase(gameState);
         await this.gameStateController.saveGame(gameID, gameState);
         const retrievedGameState: GameState = await this.gameStateController.getGame(gameID);
         
