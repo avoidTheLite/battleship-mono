@@ -3,7 +3,7 @@ import { turnManager } from "../gameState.ts";
 import { AttackError } from "../../common/types/errors.ts";
 import type { GameState, Attack } from "../../common/types/types.ts";
 import createTestGame from "../../common/util/test/createTestGame.ts";
-import { describe, test, expect, beforeEach } from "@jest/globals"
+import { describe, test, expect, beforeEach, jest } from "@jest/globals"
 
 
 describe('Attack Service Test', () => {
