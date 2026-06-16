@@ -1,7 +1,9 @@
-import { GameStateController } from "../gameState.ts";
-import type { Attack, Board, GameState, Game, TargetKey, Ship } from "../../common/types/types.ts";
+import type { GameStateController } from "../gameState.ts";
+import type { Attack, Board, GameState, TargetKey, Ship } from "../../common/types/types.ts";
 import { AttackError } from "../../common/types/errors.ts";
-import { turnManager } from "../gameState.ts";
+import TurnManager from "./TurnManager.ts";
+
+const turnManager = new TurnManager();
 
 class AttackService {
     private gameStateController: GameStateController;
@@ -34,6 +36,7 @@ class AttackService {
         if (this.isHit(gameState.players[targetPlayerIndex].board_data, coordinates)) {
             this.applyHit(gameState, targetPlayerIndex, coordinates);
         } else {
+            gameState.players[gameState.active_player_index].attack_data[coordinates[0]][coordinates[1]] = "M";
             gameState.players[gameState.active_player_index].last_attack.result = 'miss';
             gameState.players[gameState.active_player_index].last_attack.target = 'O';
         }
