@@ -1,4 +1,5 @@
 import AttackService from "./AttackService.ts";
+import type { GameStateController } from "../gameState.ts";
 import { AttackError } from "../../common/types/errors.ts";
 import type { GameState, Attack } from "../../common/types/types.ts";
 import createTestGame from "../../common/util/test/createTestGame.ts";
@@ -7,18 +8,15 @@ import { describe, it, expect, beforeEach, jest } from "@jest/globals"
 
 describe('Attack Service Test', () => {
 
-    let mockGameStateController: {
-        getGame: jest.Mock;
-        saveGame: jest.Mock;
-    };
+    let mockGameStateController: jest.Mocked<Pick<GameStateController, "getGame" | "saveGame">>;
     let attackService: AttackService;
 
     beforeEach(() => {
         mockGameStateController = {
-            getGame: jest.fn(),
-            saveGame: jest.fn()
+            getGame: jest.fn<() => Promise<GameState>>(),
+            saveGame: jest.fn<(gameID: string, state: GameState) => Promise<GameState>>()
         };
-        attackService = new AttackService(mockGameStateController);
+        attackService = new AttackService(mockGameStateController as unknown as GameStateController);
     });
 
     it('should throw an error if the game is not in the play phase', async () => {
@@ -27,16 +25,15 @@ describe('Attack Service Test', () => {
             position: [0, 0]
         };
 
-        mockGameStateController.getGame.mockResolvedValueOnce({
-            phase: 'deploy'
-        });
+        const gameState = createTestGame();
+        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
         await expect(attackService.attackCommand(gameID, attack)).rejects.toThrow(AttackError);
     });
 
     it('should persist a missed attack in exactly one attack data cell', async () => {
         const gameID = 'test';
         const gameState: GameState = createTestGame();
-        let savedGameState: GameState;
+        let savedGameState: GameState = gameState;
         gameState.phase = 'play';
         gameState.turn = 1;
 
