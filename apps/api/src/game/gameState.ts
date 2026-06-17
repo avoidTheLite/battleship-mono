@@ -1,4 +1,4 @@
-import type { PlayerBase, Player, PlayerRecord, GameState, Game, Board, ShipData, Attack } from '../common/types/types.ts';
+import type { PlayerBase, Player, PlayerRecord, GameState, Game, Board, ShipData, AttackResult } from '../common/types/types.ts';
 import { DeployError, NewGameError, PlayerNotFoundError, EndTurnError, AttackError, SaveGameError } from '../common/types/errors.ts';
 import { GAMESTATE_TABLE, PLAYER_TABLE } from '../db/tables.ts';
 import ShortUniqueId from 'short-unique-id';
@@ -34,7 +34,7 @@ function parseRecordField<T>(field: string | T): T {
     return typeof field === 'string' ? JSON.parse(field) : field;
 }
 
-function createEmptyAttackResult() {
+function createEmptyAttackResult(): AttackResult {
     return {
         position: null,
         result: null,
@@ -42,11 +42,11 @@ function createEmptyAttackResult() {
     };
 }
 
-function parseLastAttack(field: PlayerRecord['last_attack']) {
+function parseLastAttack(field: PlayerRecord['last_attack']): AttackResult {
     if (!field) {
         return createEmptyAttackResult();
     }
-    return parseRecordField(field) ?? createEmptyAttackResult();
+    return parseRecordField<AttackResult | null>(field) ?? createEmptyAttackResult();
 }
 
 function convertPlayerRecordToPlayer(playerRecord: PlayerRecord): Player {
@@ -55,9 +55,9 @@ function convertPlayerRecordToPlayer(playerRecord: PlayerRecord): Player {
         username: playerRecord.username,
         player_index: playerRecord.player_index,
         game_id: playerRecord.game_id,
-        board_data: parseRecordField(playerRecord.board_data),
-        attack_data: parseRecordField(playerRecord.attack_data),
-        ship_data: parseRecordField(playerRecord.ship_data),
+        board_data: parseRecordField<Board>(playerRecord.board_data),
+        attack_data: parseRecordField<Board>(playerRecord.attack_data),
+        ship_data: parseRecordField<ShipData>(playerRecord.ship_data),
         last_attack: parseLastAttack(playerRecord.last_attack)
     };
 }
