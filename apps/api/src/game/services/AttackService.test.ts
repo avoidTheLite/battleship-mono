@@ -1,9 +1,8 @@
 import AttackService from "./AttackService.ts";
-import { turnManager } from "../gameState.ts";
 import { AttackError } from "../../common/types/errors.ts";
 import type { GameState, Attack } from "../../common/types/types.ts";
 import createTestGame from "../../common/util/test/createTestGame.ts";
-import { describe, test, expect, beforeEach } from "@jest/globals"
+import { describe, it, expect, beforeEach, jest } from "@jest/globals"
 
 
 describe('Attack Service Test', () => {
@@ -29,5 +28,53 @@ describe('Attack Service Test', () => {
             phase: 'deploy'
         });
         await expect(attackService.attackCommand(gameID, attack)).rejects.toThrow(AttackError);
+    });
+
+    it('should record misses in attack data so the same square cannot be attacked again', async () => {
+        const gameID = 'test';
+        const gameState: GameState = createTestGame();
+        gameState.phase = 'play';
+        gameState.turn = 1;
+        const attack: Attack = {
+            position: [0, 0]
+        };
+
+        mockGameStateController.getGame.mockResolvedValueOnce(gameState).mockResolvedValueOnce(gameState);
+        mockGameStateController.saveGame.mockImplementation(async (_gameID: string, savedGameState: GameState) => savedGameState);
+
+        await attackService.attackCommand(gameID, attack);
+
+        const savedGameState = mockGameStateController.saveGame.mock.calls[0][1] as GameState;
+        expect(savedGameState.players[0].attack_data[0][0]).toBe('M');
+        expect(savedGameState.players[0].last_attack).toEqual({
+            position: [0, 0],
+            result: 'miss',
+            target: 'O'
+        });
+    });
+
+    it('should reject malformed attack payloads without saving', async () => {
+        const gameID = 'test';
+        const gameState: GameState = createTestGame();
+        gameState.phase = 'play';
+        gameState.turn = 1;
+
+        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
+
+        await expect(attackService.attackCommand(gameID, { position: [0] } as unknown as Attack)).rejects.toThrow(AttackError);
+        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
+    });
+
+    it('should reject invalid defender board markers instead of crashing ship lookup', async () => {
+        const gameID = 'test';
+        const gameState: GameState = createTestGame();
+        gameState.phase = 'play';
+        gameState.turn = 1;
+        gameState.players[1].board_data[0][0] = 'X';
+
+        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
+
+        await expect(attackService.attackCommand(gameID, { position: [0, 0] })).rejects.toThrow(AttackError);
+        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
     });
 })
