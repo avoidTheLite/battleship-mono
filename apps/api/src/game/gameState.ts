@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import type { PlayerBase, Player, PlayerRecord, GameState, Game } from '../common/types/types.ts';
+import type { PlayerBase, Player, PlayerRecord, GameState, Game, Board, ShipData, AttackResult } from '../common/types/types.ts';
 import { NewGameError, PlayerNotFoundError, SaveGameError } from '../common/types/errors.ts';
 import { GAMESTATE_TABLE, PLAYER_TABLE } from '../db/tables.ts';
 import ShortUniqueId from 'short-unique-id';
@@ -13,7 +13,7 @@ const turnManager: TurnManager = new TurnManager();
 
 type DbClient = Knex | Knex.Transaction;
 
-function createEmptyAttackResult() {
+function createEmptyAttackResult(): AttackResult {
     return {
         position: null,
         result: null,
@@ -25,7 +25,7 @@ function parseData<T>(value: string | T): T {
     return typeof value === 'string' ? JSON.parse(value) : value;
 }
 
-function parseLastAttack(value: string | object | null) {
+function parseLastAttack(value: string | AttackResult | null): AttackResult {
     if (!value) {
         return createEmptyAttackResult();
     }
@@ -42,9 +42,9 @@ function convertPlayerRecordToPlayer(playerRecord: PlayerRecord): Player {
         username: playerRecord.username,
         player_index: playerRecord.player_index,
         game_id: playerRecord.game_id,
-        board_data: parseData(playerRecord.board_data),
-        attack_data: parseData(playerRecord.attack_data),
-        ship_data: parseData(playerRecord.ship_data),
+        board_data: parseData<Board>(playerRecord.board_data),
+        attack_data: parseData<Board>(playerRecord.attack_data),
+        ship_data: parseData<ShipData>(playerRecord.ship_data),
         last_attack: parseLastAttack(playerRecord.last_attack)
     };
 }
