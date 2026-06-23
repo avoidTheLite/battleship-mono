@@ -6,6 +6,11 @@ import createBoard from '../../common/util/createBoard.ts';
 
 const blankBoard: Board = createBoard();
 const shipData: ShipData = createShips();
+const emptyLastAttack = JSON.stringify({
+    position: null,
+    result: null,
+    target: null
+});
 
 const game1Players: PlayerRecord[] = [
     {
@@ -16,7 +21,7 @@ const game1Players: PlayerRecord[] = [
         board_data: JSON.stringify(blankBoard),
         attack_data: JSON.stringify(blankBoard),
         ship_data: JSON.stringify(shipData),
-        last_attack: null
+        last_attack: emptyLastAttack
     },
     {
         id: 'seed-game-1-player-2',
@@ -26,7 +31,7 @@ const game1Players: PlayerRecord[] = [
         board_data: JSON.stringify(blankBoard),
         attack_data: JSON.stringify(blankBoard),
         ship_data: JSON.stringify(shipData),
-        last_attack: null
+        last_attack: emptyLastAttack
     },
 ]
 
@@ -50,7 +55,7 @@ const game2Players: PlayerRecord[] = [
         ]),
         attack_data: JSON.stringify(blankBoard),
         ship_data: JSON.stringify(shipData),
-        last_attack: null
+        last_attack: emptyLastAttack
     },
     {
         id: 'seed-game-2-player-2',
@@ -71,7 +76,7 @@ const game2Players: PlayerRecord[] = [
         ]),
         attack_data: JSON.stringify(blankBoard),
         ship_data: JSON.stringify(shipData),
-        last_attack: null
+        last_attack: emptyLastAttack
     },
 ]
 
