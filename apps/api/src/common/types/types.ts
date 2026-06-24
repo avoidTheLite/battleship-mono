@@ -32,7 +32,7 @@ export interface PlayerRecord extends PlayerBase {
     board_data: string;
     attack_data: string;
     ship_data: string;
-    last_attack: string;
+    last_attack: string | null;
 }
 
 export type Board = [

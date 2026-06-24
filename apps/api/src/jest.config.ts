@@ -1,6 +1,7 @@
 import type { JestConfigWithTsJest } from 'ts-jest'
 
 const jestConfig: JestConfigWithTsJest = {
+    rootDir: '..',
     extensionsToTreatAsEsm: ['.ts'],
     transform: {
         "^.+\\.[tj]sx?$": [
@@ -10,7 +11,9 @@ const jestConfig: JestConfigWithTsJest = {
         },
       ],
     },
-    setupFilesAfterEnv: ['./jest.setup.ts'],
+    moduleNameMapper: {
+        '^@battleship/util/appConfig$': '<rootDir>/../../packages/util/src/appConfig.ts',
+    },
     testEnvironment: 'node',
 }
 
