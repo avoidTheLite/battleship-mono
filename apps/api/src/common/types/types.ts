@@ -75,12 +75,12 @@ export type ShipData = [
 ]
 
 export type Attack = {
-    position: [ number, number ]
+    position: [ number, number ] | null
 }
 
 export type  ResultOptions = "hit" | "miss" | "sunk"
 
 export interface AttackResult extends Attack {
-    result: ResultOptions;
-    target: TargetKey;
+    result: ResultOptions | null;
+    target: TargetKey | null;
 }

@@ -1,4 +1,4 @@
-import type { PlayerBase, Player, PlayerRecord, GameState, Game, Board, ShipData, Attack } from '../common/types/types.ts';
+import type { PlayerBase, Player, PlayerRecord, GameState, Game, Board, ShipData, Attack, AttackResult } from '../common/types/types.ts';
 import { DeployError, NewGameError, PlayerNotFoundError, EndTurnError, AttackError, SaveGameError } from '../common/types/errors.ts';
 import { GAMESTATE_TABLE, PLAYER_TABLE } from '../db/tables.ts';
 import ShortUniqueId from 'short-unique-id';
@@ -26,6 +26,22 @@ function convertPlayersToPlayerRecords(players: Player[]): PlayerRecord[] {
         playerRecords.push(playerRecord);
     }
     return playerRecords;
+}
+
+function parseJsonField<T>(value: string | T | null): T | null {
+    if (typeof value === 'string') {
+        return JSON.parse(value) as T;
+    }
+    return value ?? null;
+}
+
+function normalizeLastAttack(lastAttack: string | AttackResult | null): AttackResult {
+    const parsedLastAttack = parseJsonField<AttackResult>(lastAttack);
+    return parsedLastAttack ?? {
+        position: null,
+        result: null,
+        target: null
+    };
 }
 
 class GameStateController {
@@ -110,6 +126,7 @@ class GameStateController {
             "player.last_attack"
         ).from(`${PLAYER_TABLE} as player`)
         .where('player.game_id', gameID)
+        .orderBy('player.player_index')
         .then((playerRecords: PlayerRecord[]) => {
             if (playerRecords.length !== 2) {
                 throw new PlayerNotFoundError({
@@ -121,19 +138,19 @@ class GameStateController {
                 username: playerRecords[0].username,
                 player_index: playerRecords[0].player_index,
                 game_id: playerRecords[0].game_id,
-                board_data: typeof playerRecords[0].board_data === 'string' ? JSON.parse(playerRecords[0].board_data) : playerRecords[0].board_data,
-                attack_data: typeof playerRecords[0].attack_data === 'string' ? JSON.parse(playerRecords[0].attack_data) : playerRecords[0].attack_data,
-                ship_data: typeof playerRecords[0].ship_data === 'string' ? JSON.parse(playerRecords[0].ship_data) : playerRecords[0].ship_data,
-                last_attack: typeof playerRecords[0].last_attack === 'string' ? JSON.parse(playerRecords[0].last_attack) : playerRecords[0].last_attack
+                board_data: parseJsonField<Board>(playerRecords[0].board_data),
+                attack_data: parseJsonField<Board>(playerRecords[0].attack_data),
+                ship_data: parseJsonField<ShipData>(playerRecords[0].ship_data),
+                last_attack: normalizeLastAttack(playerRecords[0].last_attack)
             },{
                 id: playerRecords[1].id,
                 username: playerRecords[1].username,
                 player_index: playerRecords[1].player_index,
                 game_id: playerRecords[1].game_id,
-                board_data: typeof playerRecords[1].board_data === 'string' ? JSON.parse(playerRecords[1].board_data) : playerRecords[1].board_data,
-                attack_data: typeof playerRecords[1].attack_data === 'string' ? JSON.parse(playerRecords[1].attack_data) : playerRecords[1].attack_data,
-                ship_data: typeof playerRecords[1].ship_data === 'string' ? JSON.parse(playerRecords[1].ship_data) : playerRecords[1].ship_data,
-                last_attack: typeof playerRecords[1].last_attack === 'string' ? JSON.parse(playerRecords[1].last_attack) : playerRecords[1].last_attack
+                board_data: parseJsonField<Board>(playerRecords[1].board_data),
+                attack_data: parseJsonField<Board>(playerRecords[1].attack_data),
+                ship_data: parseJsonField<ShipData>(playerRecords[1].ship_data),
+                last_attack: normalizeLastAttack(playerRecords[1].last_attack)
             }];
             return players;
         });
