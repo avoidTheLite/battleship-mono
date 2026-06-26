@@ -29,10 +29,10 @@ export interface Player extends PlayerBase {
 export interface PlayerRecord extends PlayerBase {
     id: string;
     game_id: string;
-    board_data: string;
-    attack_data: string;
-    ship_data: string;
-    last_attack: string;
+    board_data: string | Board;
+    attack_data: string | Board;
+    ship_data: string | ShipData;
+    last_attack: string | AttackResult | null;
 }
 
 export type Board = [
@@ -48,7 +48,9 @@ export type Board = [
     [string, string, string, string, string, string, string, string, string, string]
 ]
 
-export type TargetKey = "A" | "B" | "C" | "S" | "D" | "O"
+export type ShipKey = "A" | "B" | "C" | "S" | "D"
+
+export type TargetKey = ShipKey | "O"
 
 export type TargetMapping = {
     "A": "Aircraft Carrier",
@@ -75,12 +77,12 @@ export type ShipData = [
 ]
 
 export type Attack = {
-    position: [ number, number ]
+    position: [ number, number ] | null
 }
 
-export type  ResultOptions = "hit" | "miss" | "sunk"
+export type ResultOptions = "hit" | "miss" | "sunk"
 
 export interface AttackResult extends Attack {
-    result: ResultOptions;
-    target: TargetKey;
+    result: ResultOptions | null;
+    target: TargetKey | null;
 }
