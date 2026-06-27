@@ -1,15 +1,2 @@
-import { beforeAll, beforeEach, afterAll } from "@jest/globals";
-import db from "./db/db.ts";
-
-beforeAll(async () => {
-    await db.migrate.latest();
-    await db.seed.run();
-});
-
-beforeEach(async () => {
-    // await db.seed.run();
-});
-
-afterAll(async () => {
-    await db.destroy();
-});
+// Unit tests in this package mock persistence directly; database integration
+// setup belongs in dedicated integration tests.
