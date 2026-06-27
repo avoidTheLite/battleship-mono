@@ -198,6 +198,15 @@ class GameStateController {
                 await this.persistGame(gameID, gameState, trx);
             });
         } catch (error) {
+            if (
+                error instanceof AttackError ||
+                error instanceof DeployError ||
+                error instanceof EndTurnError ||
+                error instanceof NewGameError ||
+                error instanceof PlayerNotFoundError
+            ) {
+                throw error;
+            }
             throw new SaveGameError({
                 message: `Error saving game ${error}`
             });
