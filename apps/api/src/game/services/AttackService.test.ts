@@ -1,9 +1,8 @@
 import AttackService from "./AttackService.ts";
-import { turnManager } from "../gameState.ts";
 import { AttackError } from "../../common/types/errors.ts";
 import type { GameState, Attack } from "../../common/types/types.ts";
 import createTestGame from "../../common/util/test/createTestGame.ts";
-import { describe, test, expect, beforeEach } from "@jest/globals"
+import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 
 
 describe('Attack Service Test', () => {
@@ -14,7 +13,8 @@ describe('Attack Service Test', () => {
     beforeEach(() => {
         mockGameStateController = {
             getGame: jest.fn(),
-            saveGame: jest.fn()
+            saveGame: jest.fn(),
+            updateGame: jest.fn()
         };
         attackService = new AttackService(mockGameStateController);
     });
@@ -25,9 +25,74 @@ describe('Attack Service Test', () => {
             position: [0, 0]
         };
 
-        mockGameStateController.getGame.mockResolvedValueOnce({
-            phase: 'deploy'
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, update: (gameState: GameState) => GameState) => {
+            return update({
+                ...createPlayableGame(),
+                phase: 'deploy'
+            });
         });
         await expect(attackService.attackCommand(gameID, attack)).rejects.toThrow(AttackError);
     });
-})
+
+    it('persists missed attacks so the same coordinate cannot be attacked again', async () => {
+        const gameID = 'test';
+        const gameState = createPlayableGame();
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, update: (gameState: GameState) => GameState) => {
+            return update(gameState);
+        });
+
+        const result = await attackService.attackCommand(gameID, { position: [2, 3] });
+
+        expect(result.players[0].attack_data[2][3]).toBe('M');
+        expect(result.players[0].attack_data[1][3]).toBe('O');
+        expect(result.players[0].last_attack).toEqual({
+            position: [2, 3],
+            result: 'miss',
+            target: 'O'
+        });
+        expect(result.active_player_index).toBe(1);
+    });
+
+    it('rejects repeated attacks against a previously missed coordinate', async () => {
+        const gameID = 'test';
+        const gameState = createPlayableGame();
+        gameState.players[0].attack_data[2][3] = 'M';
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, update: (nextGameState: GameState) => GameState) => {
+            return update(gameState);
+        });
+
+        await expect(attackService.attackCommand(gameID, { position: [2, 3] })).rejects.toThrow(AttackError);
+        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
+    });
+
+    it('rejects invalid defender board markers instead of indexing missing ship data', async () => {
+        const gameID = 'test';
+        const gameState = createPlayableGame();
+        gameState.players[1].board_data[4][4] = 'X';
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, update: (nextGameState: GameState) => GameState) => {
+            return update(gameState);
+        });
+
+        await expect(attackService.attackCommand(gameID, { position: [4, 4] })).rejects.toThrow(AttackError);
+        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
+    });
+
+    it('rejects malformed attack payloads before reading coordinates', async () => {
+        const gameID = 'test';
+        const gameState = createPlayableGame();
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, update: (nextGameState: GameState) => GameState) => {
+            return update(gameState);
+        });
+
+        await expect(attackService.attackCommand(gameID, {} as Attack)).rejects.toThrow(AttackError);
+        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
+    });
+});
+
+function createPlayableGame(): GameState {
+    const gameState = createTestGame();
+    gameState.phase = 'play';
+    gameState.turn = 1;
+    gameState.active_player_index = 0;
+    return gameState;
+}
