@@ -13,7 +13,12 @@ class AttackService {
     }
 
     public async attackCommand(gameID: string, attack: Attack): Promise<GameState> {
-        let gameState = await this.gameStateController.getGame(gameID);
+        return this.gameStateController.updateGame(gameID, (gameState) => {
+            return this.applyAttack(gameState, attack);
+        });
+    }
+
+    private applyAttack(gameState: GameState, attack: Attack): GameState {
         if (gameState.phase !== 'play') {
             throw new AttackError({
                 message: 'Game is not in play phase'
@@ -44,13 +49,9 @@ class AttackService {
             this.applyHit(gameState, targetPlayerIndex, coordinates, targetHit);
         }
 
-        gameState = turnManager.endTurnPlayPhase(gameState);
-        gameState = await this.gameStateController.saveGame(gameID, gameState);
-
-        const retrievedGameState: GameState = await this.gameStateController.getGame(gameID);
-
-        return retrievedGameState;
+        return turnManager.endTurnPlayPhase(gameState);
     }
+
     private isValidAttack(coordinates: unknown): coordinates is [number, number] {
         if (!Array.isArray(coordinates) || coordinates.length !== 2) {
             return false;

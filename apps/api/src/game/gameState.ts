@@ -60,6 +60,21 @@ function convertPlayerRecordToPlayer(playerRecord: PlayerRecord): Player {
     };
 }
 
+function convertPlayerRecordsToPlayers(playerRecords: PlayerRecord[], gameID: string): Player[] {
+    if (playerRecords.length !== 2) {
+        throw new PlayerNotFoundError({
+            message: `Invalid number of players retrieved. Number of players retrieved was ${playerRecords.length}`
+        });
+    }
+    const players = playerRecords.map(convertPlayerRecordToPlayer);
+    if (players[0].player_index !== 0 || players[1].player_index !== 1) {
+        throw new PlayerNotFoundError({
+            message: `Invalid player indexes retrieved for game ${gameID}`
+        });
+    }
+    return players;
+}
+
 class GameStateController {
 
     constructor() {
@@ -146,18 +161,7 @@ class GameStateController {
         .where('player.game_id', gameID)
         .orderBy('player.player_index', 'asc')
         .then((playerRecords: PlayerRecord[]) => {
-            if (playerRecords.length !== 2) {
-                throw new PlayerNotFoundError({
-                    message: `Invalid number of players retrie3ved. Number of players retrieved was ${playerRecords.length}`
-                });
-            }
-            const players = playerRecords.map(convertPlayerRecordToPlayer);
-            if (players[0].player_index !== 0 || players[1].player_index !== 1) {
-                throw new PlayerNotFoundError({
-                    message: `Invalid player indexes retrieved for game ${gameID}`
-                });
-            }
-            return players;
+            return convertPlayerRecordsToPlayers(playerRecords, gameID);
         });
         const gameState = {
             id: game.id,
@@ -171,6 +175,70 @@ class GameStateController {
             ]
         }
         return gameState;
+    }
+
+    public async updateGame(gameID: string, update: (gameState: GameState) => GameState | Promise<GameState>): Promise<GameState> {
+        return db.transaction(async (trx) => {
+            const game = await trx('games').select(
+                "game.id",
+                "game.name",
+                "game.phase",
+                "game.turn",
+                "game.active_player_index"
+            ).from(`${GAMESTATE_TABLE} as game`)
+            .where('game.id', gameID)
+            .forUpdate()
+            .first()
+            .then((gameRecord: Game) => {
+                if (!gameRecord) {
+                    throw new PlayerNotFoundError({
+                        message: `Game with id ${gameID} not found`
+                    });
+                }
+                return gameRecord;
+            });
+
+            const playerRecords = await trx.select(
+                "player.id",
+                "player.username",
+                "player.player_index",
+                "player.game_id",
+                "player.board_data",
+                "player.attack_data",
+                "player.ship_data",
+                "player.last_attack"
+            ).from(`${PLAYER_TABLE} as player`)
+            .where('player.game_id', gameID)
+            .orderBy('player.player_index', 'asc')
+            .forUpdate();
+            const players = convertPlayerRecordsToPlayers(playerRecords, gameID);
+            const currentGameState: GameState = {
+                id: game.id,
+                name: game.name,
+                phase: game.phase,
+                turn: game.turn,
+                active_player_index: game.active_player_index,
+                players: [
+                    players[0],
+                    players[1]
+                ]
+            };
+            const nextGameState = await update(currentGameState);
+            const nextPlayerRecords: PlayerRecord[] = convertPlayersToPlayerRecords(nextGameState.players);
+            const gameRecord: Game = {
+                id: nextGameState.id,
+                name: nextGameState.name,
+                phase: nextGameState.phase,
+                turn: nextGameState.turn,
+                active_player_index: nextGameState.active_player_index
+            };
+
+            for (let i = 0; i < nextPlayerRecords.length; i++) {
+                await trx('players').where('id', nextPlayerRecords[i].id).update(nextPlayerRecords[i]);
+            }
+            await trx('games').where('id', gameID).update(gameRecord);
+            return nextGameState;
+        });
     }
 
     public async saveGame(gameID: string, gameState: GameState): Promise<GameState> {

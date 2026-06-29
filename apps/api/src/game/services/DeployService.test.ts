@@ -12,41 +12,33 @@ describe('DeployService', () => {
     beforeEach(() => {
         mockGameStateController = {
             getGame: jest.fn(),
-            saveGame: jest.fn()
+            saveGame: jest.fn(),
+            updateGame: jest.fn()
         };
         deployService = new DeployService(mockGameStateController);
     });
 
     it('rejects boards with unknown ship markers even when the total occupied count is 17', async () => {
-        const gameState = createTestGame();
         const invalidBoard = createValidDeployBoard();
         invalidBoard[0][0] = 'X';
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
 
         await expect(deployService.deployCommand('test', invalidBoard)).rejects.toThrow(DeployError);
-        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
+        expect(mockGameStateController.updateGame).not.toHaveBeenCalled();
     });
 
     it('rejects boards with incorrect ship cell counts', async () => {
-        const gameState = createTestGame();
         const invalidBoard = createValidDeployBoard();
         invalidBoard[0][0] = 'O';
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
 
         await expect(deployService.deployCommand('test', invalidBoard)).rejects.toThrow(DeployError);
-        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
+        expect(mockGameStateController.updateGame).not.toHaveBeenCalled();
     });
 
     it('persists a valid deployment for the active player and advances the turn', async () => {
         const gameState = createTestGame();
         const validBoard = createValidDeployBoard();
-        let savedGameState: GameState | undefined;
-        mockGameStateController.getGame
-            .mockResolvedValueOnce(gameState)
-            .mockImplementationOnce(async () => savedGameState);
-        mockGameStateController.saveGame.mockImplementation(async (_gameID: string, nextGameState: GameState) => {
-            savedGameState = nextGameState;
-            return nextGameState;
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, update: (nextGameState: GameState) => GameState) => {
+            return update(gameState);
         });
 
         const result = await deployService.deployCommand('test', validBoard);

@@ -13,7 +13,8 @@ describe('Attack Service Test', () => {
     beforeEach(() => {
         mockGameStateController = {
             getGame: jest.fn(),
-            saveGame: jest.fn()
+            saveGame: jest.fn(),
+            updateGame: jest.fn()
         };
         attackService = new AttackService(mockGameStateController);
     });
@@ -24,8 +25,11 @@ describe('Attack Service Test', () => {
             position: [0, 0]
         };
 
-        mockGameStateController.getGame.mockResolvedValueOnce({
-            phase: 'deploy'
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, update: (gameState: GameState) => GameState) => {
+            return update({
+                ...createPlayableGame(),
+                phase: 'deploy'
+            });
         });
         await expect(attackService.attackCommand(gameID, attack)).rejects.toThrow(AttackError);
     });
@@ -33,13 +37,8 @@ describe('Attack Service Test', () => {
     it('persists missed attacks so the same coordinate cannot be attacked again', async () => {
         const gameID = 'test';
         const gameState = createPlayableGame();
-        let savedGameState: GameState | undefined;
-        mockGameStateController.getGame
-            .mockResolvedValueOnce(gameState)
-            .mockImplementationOnce(async () => savedGameState);
-        mockGameStateController.saveGame.mockImplementation(async (_gameID: string, nextGameState: GameState) => {
-            savedGameState = nextGameState;
-            return nextGameState;
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, update: (gameState: GameState) => GameState) => {
+            return update(gameState);
         });
 
         const result = await attackService.attackCommand(gameID, { position: [2, 3] });
@@ -58,7 +57,9 @@ describe('Attack Service Test', () => {
         const gameID = 'test';
         const gameState = createPlayableGame();
         gameState.players[0].attack_data[2][3] = 'M';
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, update: (nextGameState: GameState) => GameState) => {
+            return update(gameState);
+        });
 
         await expect(attackService.attackCommand(gameID, { position: [2, 3] })).rejects.toThrow(AttackError);
         expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
@@ -68,7 +69,9 @@ describe('Attack Service Test', () => {
         const gameID = 'test';
         const gameState = createPlayableGame();
         gameState.players[1].board_data[4][4] = 'X';
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, update: (nextGameState: GameState) => GameState) => {
+            return update(gameState);
+        });
 
         await expect(attackService.attackCommand(gameID, { position: [4, 4] })).rejects.toThrow(AttackError);
         expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
@@ -77,7 +80,9 @@ describe('Attack Service Test', () => {
     it('rejects malformed attack payloads before reading coordinates', async () => {
         const gameID = 'test';
         const gameState = createPlayableGame();
-        mockGameStateController.getGame.mockResolvedValueOnce(gameState);
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, update: (nextGameState: GameState) => GameState) => {
+            return update(gameState);
+        });
 
         await expect(attackService.attackCommand(gameID, {} as Attack)).rejects.toThrow(AttackError);
         expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
