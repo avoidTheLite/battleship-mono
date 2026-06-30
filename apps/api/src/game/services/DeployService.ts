@@ -1,7 +1,7 @@
 import type { Board, GameState } from "../../common/types/types.ts";
 import { DeployError } from "../../common/types/errors.ts";
-import { turnManager } from "../gameState.ts";
-import { GameStateController } from "../gameState.ts";
+import type { GameStateController } from "../gameState.ts";
+import TurnManager from "./TurnManager.ts";
 
 const EXPECTED_SHIP_COUNTS: Record<string, number> = {
     A: 5,
@@ -10,6 +10,7 @@ const EXPECTED_SHIP_COUNTS: Record<string, number> = {
     S: 3,
     D: 2
 };
+const turnManager = new TurnManager();
 
 export default class DeployService {
     private gameStateController: GameStateController
