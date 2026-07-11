@@ -1,5 +1,5 @@
 import type { GameStateController } from "../gameState.ts";
-import type { Attack, Board, GameState, TargetKey } from "../../common/types/types.ts";
+import type { Attack, Board, GameState, Ship, TargetKey } from "../../common/types/types.ts";
 import { AttackError } from "../../common/types/errors.ts";
 import TurnManager from "./TurnManager.ts";
 
