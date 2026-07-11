@@ -1,9 +1,8 @@
 import AttackService from "./AttackService.ts";
-import { turnManager } from "../gameState.ts";
 import { AttackError } from "../../common/types/errors.ts";
 import type { GameState, Attack } from "../../common/types/types.ts";
 import createTestGame from "../../common/util/test/createTestGame.ts";
-import { describe, test, expect, beforeEach } from "@jest/globals"
+import { describe, expect, beforeEach, it, jest } from "@jest/globals"
 
 
 describe('Attack Service Test', () => {
@@ -29,5 +28,31 @@ describe('Attack Service Test', () => {
             phase: 'deploy'
         });
         await expect(attackService.attackCommand(gameID, attack)).rejects.toThrow(AttackError);
+    });
+
+    it('should persist missed attacks in the attacker attack data', async () => {
+        const gameID = 'test';
+        const attack: Attack = {
+            position: [4, 6]
+        };
+        const gameState: GameState = {
+            ...createTestGame(),
+            phase: 'play'
+        };
+
+        mockGameStateController.getGame
+            .mockResolvedValueOnce(gameState)
+            .mockResolvedValueOnce(gameState);
+        mockGameStateController.saveGame.mockImplementationOnce(async (_gameID: string, savedGameState: GameState) => savedGameState);
+
+        await attackService.attackCommand(gameID, attack);
+
+        const savedGameState = mockGameStateController.saveGame.mock.calls[0][1] as GameState;
+        expect(savedGameState.players[0].attack_data[4][6]).toBe('M');
+        expect(savedGameState.players[0].last_attack).toEqual({
+            position: [4, 6],
+            result: 'miss',
+            target: 'O'
+        });
     });
 })
