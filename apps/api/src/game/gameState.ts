@@ -1,5 +1,5 @@
-import type { PlayerBase, Player, PlayerRecord, GameState, Game, Board, ShipData, Attack } from '../common/types/types.ts';
-import { DeployError, NewGameError, PlayerNotFoundError, EndTurnError, AttackError, SaveGameError } from '../common/types/errors.ts';
+import type { PlayerBase, Player, PlayerRecord, GameState, Game, Board, ShipData, AttackResult } from '../common/types/types.ts';
+import { NewGameError, PlayerNotFoundError, SaveGameError } from '../common/types/errors.ts';
 import { GAMESTATE_TABLE, PLAYER_TABLE } from '../db/tables.ts';
 import ShortUniqueId from 'short-unique-id';
 import createBoard from '../common/util/createBoard.ts';
@@ -9,6 +9,27 @@ import TurnManager from './services/TurnManager.ts';
 
 let uid: ShortUniqueId = new ShortUniqueId({ length: 10 });
 const turnManager: TurnManager = new TurnManager();
+
+function createBlankAttackResult(): AttackResult {
+    return {
+        position: null,
+        result: null,
+        target: null
+    };
+}
+
+function parseJsonField<T>(field: string | T): T {
+    return typeof field === 'string' ? JSON.parse(field) as T : field;
+}
+
+function parseLastAttack(lastAttack: string | AttackResult | null): AttackResult {
+    if (lastAttack === null) {
+        return createBlankAttackResult();
+    }
+
+    const parsedLastAttack = parseJsonField<AttackResult | null>(lastAttack);
+    return parsedLastAttack ?? createBlankAttackResult();
+}
 
 function convertPlayersToPlayerRecords(players: Player[]): PlayerRecord[] {
     let playerRecords: PlayerRecord[] = [];
@@ -21,7 +42,7 @@ function convertPlayersToPlayerRecords(players: Player[]): PlayerRecord[] {
             board_data: JSON.stringify(players[i].board_data),
             attack_data: JSON.stringify(players[i].attack_data),
             ship_data: JSON.stringify(players[i].ship_data),
-            last_attack: JSON.stringify(players[i].last_attack)
+            last_attack: JSON.stringify(players[i].last_attack ?? createBlankAttackResult())
         }
         playerRecords.push(playerRecord);
     }
@@ -75,8 +96,10 @@ class GameStateController {
                 target: null
             })
         }
-        await db('games').insert(game);
-        await db('players').insert([player1, player2]);
+        await db.transaction(async (trx) => {
+            await trx(GAMESTATE_TABLE).insert(game);
+            await trx(PLAYER_TABLE).insert([player1, player2]);
+        });
         const gameState = await this.getGame(game.id);
         return gameState;
 
@@ -110,6 +133,7 @@ class GameStateController {
             "player.last_attack"
         ).from(`${PLAYER_TABLE} as player`)
         .where('player.game_id', gameID)
+        .orderBy("player.player_index", "asc")
         .then((playerRecords: PlayerRecord[]) => {
             if (playerRecords.length !== 2) {
                 throw new PlayerNotFoundError({
@@ -121,19 +145,19 @@ class GameStateController {
                 username: playerRecords[0].username,
                 player_index: playerRecords[0].player_index,
                 game_id: playerRecords[0].game_id,
-                board_data: typeof playerRecords[0].board_data === 'string' ? JSON.parse(playerRecords[0].board_data) : playerRecords[0].board_data,
-                attack_data: typeof playerRecords[0].attack_data === 'string' ? JSON.parse(playerRecords[0].attack_data) : playerRecords[0].attack_data,
-                ship_data: typeof playerRecords[0].ship_data === 'string' ? JSON.parse(playerRecords[0].ship_data) : playerRecords[0].ship_data,
-                last_attack: typeof playerRecords[0].last_attack === 'string' ? JSON.parse(playerRecords[0].last_attack) : playerRecords[0].last_attack
+                board_data: parseJsonField<Board>(playerRecords[0].board_data),
+                attack_data: parseJsonField<Board>(playerRecords[0].attack_data),
+                ship_data: parseJsonField<ShipData>(playerRecords[0].ship_data),
+                last_attack: parseLastAttack(playerRecords[0].last_attack)
             },{
                 id: playerRecords[1].id,
                 username: playerRecords[1].username,
                 player_index: playerRecords[1].player_index,
                 game_id: playerRecords[1].game_id,
-                board_data: typeof playerRecords[1].board_data === 'string' ? JSON.parse(playerRecords[1].board_data) : playerRecords[1].board_data,
-                attack_data: typeof playerRecords[1].attack_data === 'string' ? JSON.parse(playerRecords[1].attack_data) : playerRecords[1].attack_data,
-                ship_data: typeof playerRecords[1].ship_data === 'string' ? JSON.parse(playerRecords[1].ship_data) : playerRecords[1].ship_data,
-                last_attack: typeof playerRecords[1].last_attack === 'string' ? JSON.parse(playerRecords[1].last_attack) : playerRecords[1].last_attack
+                board_data: parseJsonField<Board>(playerRecords[1].board_data),
+                attack_data: parseJsonField<Board>(playerRecords[1].attack_data),
+                ship_data: parseJsonField<ShipData>(playerRecords[1].ship_data),
+                last_attack: parseLastAttack(playerRecords[1].last_attack)
             }];
             return players;
         });
@@ -152,16 +176,6 @@ class GameStateController {
     }
 
     public async saveGame(gameID: string, gameState: GameState): Promise<GameState> {
-        const playerRecords: PlayerRecord[] = convertPlayersToPlayerRecords(gameState.players);
-        for (let i = 0; i < playerRecords.length; i++) {
-            try{
-                await db('players').where('id', playerRecords[i].id).update(playerRecords[i]);
-            } catch (error) {
-                throw new SaveGameError({
-                    message: `Error saving game ${error}`
-                });
-            }
-        }
         const gameRecord: Game={
             id: gameState.id,
             name: gameState.name,
@@ -170,7 +184,13 @@ class GameStateController {
             active_player_index: gameState.active_player_index
         };
         try{
-            await db('games').where('id', gameID).update(gameRecord);
+            const playerRecords: PlayerRecord[] = convertPlayersToPlayerRecords(gameState.players);
+            await db.transaction(async (trx) => {
+                for (let i = 0; i < playerRecords.length; i++) {
+                    await trx(PLAYER_TABLE).where('id', playerRecords[i].id).update(playerRecords[i]);
+                }
+                await trx(GAMESTATE_TABLE).where('id', gameID).update(gameRecord);
+            });
         } catch (error) {
             throw new SaveGameError({
                 message: `Error saving game ${error}`
