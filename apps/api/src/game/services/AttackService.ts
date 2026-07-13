@@ -41,7 +41,9 @@ class AttackService {
         if (this.isHit(gameState.players[targetPlayerIndex].board_data, coordinates)) {
             this.applyHit(gameState, targetPlayerIndex, coordinates);
         } else {
-            activePlayer.attack_data[coordinates[0]][coordinates[1]] = "M";
+            const row = coordinates[0] | 0;
+            const col = coordinates[1] | 0;
+            activePlayer.attack_data[row][col] = "M";
         }
 
         gameState = turnManager.endTurnPlayPhase(gameState);
@@ -104,7 +106,9 @@ class AttackService {
     private applyHit(gameState: GameState, targetPlayerIndex: number, coordinates: [number, number]): void {
         const activePlayer: Player = gameState.players[gameState.active_player_index];
         const targetPlayer: Player = gameState.players[targetPlayerIndex];
-        activePlayer.attack_data[coordinates[0]][coordinates[1]] = "H";
+        const row = coordinates[0] | 0;
+        const col = coordinates[1] | 0;
+        activePlayer.attack_data[row][col] = "H";
         const targetHit: TargetKey = this.getTargetHit(targetPlayer.board_data, coordinates);
         const targetIndex: number = this.getTargetIndex(targetPlayer.ship_data, targetHit);
         activePlayer.last_attack.target = targetHit;
