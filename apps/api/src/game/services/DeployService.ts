@@ -29,6 +29,13 @@ export default class DeployService {
             S: 0,
             D: 0
         };
+        const positions: Record<string, [number, number][]> = {
+            A: [],
+            B: [],
+            C: [],
+            S: [],
+            D: []
+        };
         for (let i = 0; i < 10; i++) {
             if (!Array.isArray(board[i]) || board[i].length !== 10) {
                 return false;
@@ -38,14 +45,32 @@ export default class DeployService {
                 if (target === 'O') {
                     continue;
                 }
-                if (!(target in counts)) {
+                if (!Object.prototype.hasOwnProperty.call(counts, target)) {
                     return false;
                 }
                 counts[target] += 1;
+                positions[target].push([i, j]);
             }
         }
-        return Object.entries(EXPECTED_SHIP_COUNTS).every(([target, expectedCount]) => counts[target] === expectedCount);
+        return Object.entries(EXPECTED_SHIP_COUNTS).every(([target, expectedCount]) =>
+            counts[target] === expectedCount && this.isStraightContiguous(positions[target])
+        );
     }
+
+    private isStraightContiguous(positions: [number, number][]): boolean {
+        const sameRow = positions.every(([row]) => row === positions[0][0]);
+        const sameColumn = positions.every(([, column]) => column === positions[0][1]);
+        if (!sameRow && !sameColumn) {
+            return false;
+        }
+
+        const axis = sameRow ? 1 : 0;
+        const sortedPositions = positions.map((position) => position[axis]).sort((a, b) => a - b);
+        return sortedPositions.every((position, index) =>
+            index === 0 || position === sortedPositions[index - 1] + 1
+        );
+    }
+
     public async deployCommand(gameID: string, deployBoard: Board): Promise<GameState> {
         return this.gameStateController.updateGame(gameID, (gameState) => {
             if (!this.isValidBoard(deployBoard)) {
