@@ -54,7 +54,7 @@ export default class DeployService {
                 })
             }
             gameState.players[gameState.active_player_index].board_data = deployBoard;
-            
+
             return turnManager.endTurnDeployPhase(gameState);
         });
     }
