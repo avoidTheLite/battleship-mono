@@ -60,6 +60,27 @@ describe('Deploy Service Test', () => {
         await expect(deployService.deployCommand(gameID, invalidBoard)).rejects.toThrow(DeployError);
     });
 
+    it('should reject inherited property names as board markers', async () => {
+        const gameID = 'test';
+        const gameState = createTestGame();
+        const invalidBoard = createValidDeployBoard();
+        invalidBoard[9][9] = 'constructor';
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(gameState));
+
+        await expect(deployService.deployCommand(gameID, invalidBoard)).rejects.toThrow(DeployError);
+    });
+
+    it('should reject ships that are not straight and contiguous', async () => {
+        const gameID = 'test';
+        const gameState = createTestGame();
+        const invalidBoard = createValidDeployBoard();
+        invalidBoard[0][4] = 'O';
+        invalidBoard[9][9] = 'A';
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(gameState));
+
+        await expect(deployService.deployCommand(gameID, invalidBoard)).rejects.toThrow(DeployError);
+    });
+
     it('should save valid deploy boards and advance the turn', async () => {
         const gameID = 'test';
         const gameState = createTestGame();
