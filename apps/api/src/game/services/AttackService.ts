@@ -31,7 +31,7 @@ class AttackService {
                     message: `Already attacked this location ${attack.position}`
                 });
             }
-            
+
             const targetPlayerIndex: number = (gameState.active_player_index + 1) % 2;
             const lastAttack = this.ensureLastAttack(gameState);
             lastAttack.position = coordinates;
@@ -112,7 +112,7 @@ class AttackService {
         if (this.targetSunk(targetIndex, gameState.players[targetPlayerIndex].ship_data)) {
             gameState.players[targetPlayerIndex].ship_data[targetIndex].sunk = true;
             lastAttack.result = 'sunk';
-            
+
         } else {
             lastAttack.result = 'hit';
         }
