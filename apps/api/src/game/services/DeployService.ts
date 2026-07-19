@@ -45,7 +45,7 @@ export default class DeployService {
                 if (target === 'O') {
                     continue;
                 }
-                if (!Object.prototype.hasOwnProperty.call(counts, target)) {
+                if (typeof target !== 'string' || !Object.prototype.hasOwnProperty.call(counts, target)) {
                     return false;
                 }
                 counts[target] += 1;

@@ -70,6 +70,16 @@ describe('Deploy Service Test', () => {
         await expect(deployService.deployCommand(gameID, invalidBoard)).rejects.toThrow(DeployError);
     });
 
+    it('should reject non-string board markers', async () => {
+        const gameID = 'test';
+        const gameState = createTestGame();
+        const invalidBoard = createValidDeployBoard();
+        invalidBoard[0][0] = ['A'] as unknown as string;
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => mutateGameState(gameState));
+
+        await expect(deployService.deployCommand(gameID, invalidBoard)).rejects.toThrow(DeployError);
+    });
+
     it('should reject ships that are not straight and contiguous', async () => {
         const gameID = 'test';
         const gameState = createTestGame();
