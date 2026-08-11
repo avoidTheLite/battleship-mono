@@ -1,3 +1,4 @@
+import type { Knex } from 'knex';
 import type { PlayerBase, Player, PlayerRecord, GameState, Game, Board, ShipData, AttackResult } from '../common/types/types.ts';
 import { NewGameError, PlayerNotFoundError, SaveGameError } from '../common/types/errors.ts';
 import { GAMESTATE_TABLE, PLAYER_TABLE } from '../db/tables.ts';
@@ -9,6 +10,7 @@ import TurnManager from './services/TurnManager.ts';
 
 let uid: ShortUniqueId = new ShortUniqueId({ length: 10 });
 const turnManager: TurnManager = new TurnManager();
+type GameStateMutation = (gameState: GameState) => GameState | Promise<GameState>;
 
 function createBlankAttackResult(): AttackResult {
     return {
@@ -103,15 +105,21 @@ class GameStateController {
         return gameState;
 
     }
-    public async getGame(gameID: string): Promise<GameState> {
-        const game = await db('games').select(
+    public async getGame(gameID: string, trx?: Knex.Transaction, lockForUpdate = false): Promise<GameState> {
+        const queryBuilder = trx ?? db;
+        let gameQuery = queryBuilder.select(
             "game.id",
             "game.name",
             "game.phase",
             "game.turn",
             "game.active_player_index"
         ).from(`${GAMESTATE_TABLE} as game`)
-        .where('game.id', gameID).first()
+        .where('game.id', gameID)
+        .first();
+        if (lockForUpdate) {
+            gameQuery = gameQuery.forUpdate();
+        }
+        const game = await gameQuery
         .then((gameRecord: Game) => {
             if (!gameRecord) {
                 throw new PlayerNotFoundError({
@@ -121,7 +129,7 @@ class GameStateController {
             return gameRecord;
         })
 
-        const players = await db.select(
+        let playersQuery = queryBuilder.select(
             "player.id",
             "player.username",
             "player.player_index",
@@ -132,7 +140,11 @@ class GameStateController {
             "player.last_attack"
         ).from(`${PLAYER_TABLE} as player`)
         .where('player.game_id', gameID)
-        .orderBy("player.player_index", "asc")
+        .orderBy("player.player_index", "asc");
+        if (lockForUpdate) {
+            playersQuery = playersQuery.forUpdate();
+        }
+        const players = await playersQuery
         .then((playerRecords: PlayerRecord[]) => {
             if (playerRecords.length !== 2) {
                 throw new PlayerNotFoundError({
@@ -174,7 +186,19 @@ class GameStateController {
         return gameState;
     }
 
-    public async saveGame(gameID: string, gameState: GameState): Promise<GameState> {
+    public async updateGame(gameID: string, mutateGameState: GameStateMutation): Promise<GameState> {
+        return db.transaction(async (trx) => {
+            const gameState = await this.getGame(gameID, trx, true);
+            const updatedGameState = await mutateGameState(gameState);
+            await this.saveGame(gameID, updatedGameState, trx);
+            return this.getGame(gameID, trx);
+        });
+    }
+
+    public async saveGame(gameID: string, gameState: GameState, trx?: Knex.Transaction): Promise<GameState> {
+        if (!trx) {
+            return db.transaction(async (transaction) => this.saveGame(gameID, gameState, transaction));
+        }
         const gameRecord: Game = {
             id: gameState.id,
             name: gameState.name,
@@ -184,12 +208,10 @@ class GameStateController {
         };
         try {
             const playerRecords: PlayerRecord[] = convertPlayersToPlayerRecords(gameState.players);
-            await db.transaction(async (trx) => {
-                for (let i = 0; i < playerRecords.length; i++) {
-                    await trx(PLAYER_TABLE).where('id', playerRecords[i].id).update(playerRecords[i]);
-                }
-                await trx(GAMESTATE_TABLE).where('id', gameID).update(gameRecord);
-            });
+            for (let i = 0; i < playerRecords.length; i++) {
+                await trx(PLAYER_TABLE).where('id', playerRecords[i].id).update(playerRecords[i]);
+            }
+            await trx(GAMESTATE_TABLE).where('id', gameID).update(gameRecord);
         } catch (error) {
             throw new SaveGameError({
                 message: `Error saving game ${error}`
