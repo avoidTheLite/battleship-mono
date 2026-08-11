@@ -23,18 +23,14 @@ describe('Attack Service Test', () => {
     }
 
     function mockControllerState(gameState: GameState): void {
-        let savedGameState = cloneGame(gameState);
-        mockGameStateController.getGame.mockImplementation(async () => cloneGame(savedGameState));
-        mockGameStateController.saveGame.mockImplementation(async (_gameID: string, nextGameState: GameState) => {
-            savedGameState = cloneGame(nextGameState);
-            return cloneGame(savedGameState);
+        mockGameStateController.updateGame.mockImplementation(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => {
+            return mutateGameState(cloneGame(gameState));
         });
     }
 
     beforeEach(() => {
         mockGameStateController = {
-            getGame: jest.fn(),
-            saveGame: jest.fn()
+            updateGame: jest.fn()
         };
         attackService = new AttackService(mockGameStateController);
         testGame = setupPlayGame();
@@ -46,8 +42,8 @@ describe('Attack Service Test', () => {
             position: [0, 0]
         };
 
-        mockGameStateController.getGame.mockResolvedValueOnce({
-            phase: 'deploy'
+        mockGameStateController.updateGame.mockImplementationOnce(async (_gameID: string, mutateGameState: (gameState: GameState) => GameState) => {
+            return mutateGameState(createTestGame());
         });
         await expect(attackService.attackCommand(gameID, attack)).rejects.toThrow(AttackError);
     });
@@ -66,6 +62,7 @@ describe('Attack Service Test', () => {
             target: 'O'
         });
         expect(gameState.active_player_index).toBe(1);
+        expect(mockGameStateController.updateGame).toHaveBeenCalledTimes(1);
     });
 
     it('should reject a repeated miss location', async () => {
@@ -75,7 +72,6 @@ describe('Attack Service Test', () => {
         await expect(attackService.attackCommand('test', {
             position: [0, 0]
         })).rejects.toThrow(AttackError);
-        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
     });
 
     it('should reject malformed attack positions before indexing the board', async () => {
@@ -84,7 +80,6 @@ describe('Attack Service Test', () => {
         await expect(attackService.attackCommand('test', {
             position: [0, Number.NaN]
         } as Attack)).rejects.toThrow(AttackError);
-        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
     });
 
     it('should reject corrupted defender board markers instead of crashing', async () => {
@@ -94,6 +89,5 @@ describe('Attack Service Test', () => {
         await expect(attackService.attackCommand('test', {
             position: [0, 0]
         })).rejects.toThrow(AttackError);
-        expect(mockGameStateController.saveGame).not.toHaveBeenCalled();
     });
 })

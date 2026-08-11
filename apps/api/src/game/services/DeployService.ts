@@ -46,18 +46,15 @@ export default class DeployService {
     }
 
     public async deployCommand(gameID: string, deployBoard: Board): Promise<GameState> {
-        let gameState = await this.gameStateController.getGame(gameID);
-        if (!this.isValidBoard(deployBoard)) {
-            throw new DeployError({
-                message: 'Invalid board submitted'
-            })
-        }
-        gameState.players[gameState.active_player_index].board_data = deployBoard;
-        
-        gameState = turnManager.endTurnDeployPhase(gameState);
-        await this.gameStateController.saveGame(gameID, gameState);
-        const retrievedGameState: GameState = await this.gameStateController.getGame(gameID);
-        
-        return retrievedGameState;
+        return this.gameStateController.updateGame(gameID, (gameState) => {
+            if (!this.isValidBoard(deployBoard)) {
+                throw new DeployError({
+                    message: 'Invalid board submitted'
+                })
+            }
+            gameState.players[gameState.active_player_index].board_data = deployBoard;
+
+            return turnManager.endTurnDeployPhase(gameState);
+        });
     }
 }
